@@ -8,30 +8,96 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #fafaf9; color: #292524; }
-        .chart-container { position: relative; width: 100%; max-width: 900px; margin-left: auto; margin-right: auto; height: 350px; max-height: 400px; }
-        @media (max-width: 768px) { .chart-container { height: 250px; } }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fafaf9; /* stone-50 */
+            color: #292524; /* stone-800 */
+        }
+
+        /* Chart Container Mandatory Styling */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 250px;
+            }
+        }
+
+        /* Custom Scrollbar */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #f5f5f4; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #a8a29e; }
-        .catalyst-card { transition: all 0.2s ease-in-out; border-left: 4px solid transparent; }
-        .catalyst-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
-        .details-content { display: none; opacity: 0; transition: opacity 0.3s ease; }
-        .details-content.active { display: block; opacity: 1; animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-        .action-pulse { animation: pulse-border 2s infinite; }
-        @keyframes pulse-border { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
-        .action-pulse-red { animation: pulse-border-red 2s infinite; }
-        @keyframes pulse-border-red { 0% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(244, 63, 94, 0); } 100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0); } }
-        
+
+        .catalyst-card {
+            transition: all 0.2s ease-in-out;
+            border-left: 4px solid transparent;
+        }
+        .catalyst-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .details-content {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .details-content.active {
+            display: block;
+            opacity: 1;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .action-pulse {
+            animation: pulse-border 2s infinite;
+        }
+        @keyframes pulse-border {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        .action-pulse-red {
+            animation: pulse-border-red 2s infinite;
+        }
+        @keyframes pulse-border-red {
+            0% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(244, 63, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0); }
+        }
+
         /* Spinner para carga */
-        .spinner { border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top: 3px solid #fff; width: 16px; height: 16px; animation: spin 1s linear infinite; display: inline-block; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 3px solid #fff;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col">
 
+    <!-- Header -->
     <header class="bg-stone-900 text-stone-100 sticky top-0 z-50 shadow-md border-b-4 border-emerald-600">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center gap-2">
@@ -51,46 +117,51 @@
     </header>
 
     <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-10">
-        
+
+        <!-- Global Summary Section -->
         <section>
             <div class="mb-4 flex justify-between items-end">
                 <div>
                     <h2 class="text-2xl font-bold text-stone-900 tracking-tight">Termómetro Global</h2>
-                    <p class="text-sm text-stone-500 mt-1">Presión fundamental actual por divisa basada en el último escaneo</p>
+                    <p class="text-sm text-stone-500 mt-1">Presión fundamental actual por divisa</p>
                 </div>
             </div>
+
             <div id="global-summary-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                </div>
+                <!-- Injected via JS -->
+            </div>
         </section>
 
+        <!-- ✨ AI News Analyzer Section ✨ -->
         <section class="bg-gradient-to-r from-stone-900 to-stone-800 rounded-xl p-6 shadow-lg border border-emerald-500/30 relative overflow-hidden mt-6">
             <div class="absolute -right-10 -top-10 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl"></div>
             <div class="relative z-10">
                 <h2 class="text-xl font-bold text-stone-100 flex items-center gap-2 mb-2">
-                    <span>✨</span> Analizador de Noticias Personalizado
+                    <span>✨</span> Analizador de Noticias en Vivo (Powered by IA)
                 </h2>
-                <p class="text-sm text-stone-400 mb-4">Pega una noticia específica o rumor reciente. La IA evaluará instantáneamente el impacto en el mercado y creará un plan de acción técnico.</p>
-                
+                <p class="text-sm text-stone-400 mb-4">Pega una noticia macroeconómica, reporte de inflación o rumor geopolítico reciente. La IA evaluará instantáneamente el impacto en el mercado y creará un plan de acción técnico.</p>
+
                 <div class="flex flex-col gap-3">
-                    <textarea id="ai-news-input" class="w-full bg-stone-950 border border-stone-700 rounded-lg p-3 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-emerald-500 transition-colors resize-none h-24 custom-scrollbar" placeholder="Ej: La inflación en UK sube inesperadamente..."></textarea>
-                    
+                    <textarea id="ai-news-input" class="w-full bg-stone-950 border border-stone-700 rounded-lg p-3 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-emerald-500 transition-colors resize-none h-24 custom-scrollbar" placeholder="Ej: La inflación en UK sube inesperadamente al 4%, el mercado laboral sigue caliente y el BoE advierte que mantendrá tasas altas..."></textarea>
+
                     <div class="flex justify-between items-center">
                         <span id="ai-error-msg" class="text-rose-400 text-xs font-semibold opacity-0 transition-opacity">Error al conectar con la IA. Intenta de nuevo en un momento.</span>
                         <button id="ai-generate-btn" onclick="app.handleAIGeneration()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-md transition-colors flex items-center gap-2 ml-auto">
-                            ✨ Generar Alerta
+                            ✨ Generar Alerta de Trading
                         </button>
                     </div>
                 </div>
             </div>
         </section>
 
+        <!-- Detailed Catalysts Feed & Action Plans -->
         <section>
             <div class="mb-6 flex flex-col md:flex-row md:justify-between md:items-center border-b border-stone-200 pb-4 gap-4">
                 <div>
                     <h2 class="text-2xl font-bold text-stone-900 tracking-tight flex items-center gap-2">
                         <span>⚡</span> Alertas de Acción & Cataclismos
                     </h2>
-                    <p class="text-sm text-stone-500 mt-1">Eventos críticos detectados en el mercado y directivas de position trading.</p>
+                    <p class="text-sm text-stone-500 mt-1">Eventos críticos inminentes y directivas de position trading recomendadas.</p>
                 </div>
                 <div class="flex gap-2">
                     <button class="filter-btn active px-3 py-1.5 text-xs font-semibold rounded-md bg-stone-800 text-white" data-filter="all">Todos</button>
@@ -100,14 +171,17 @@
             </div>
 
             <div id="catalyst-feed" class="space-y-4">
-                </div>
+                <!-- Injected via JS -->
+            </div>
         </section>
 
+        <!-- Chart Section -->
         <section class="bg-white rounded-xl p-6 shadow-sm border border-stone-200">
             <div class="mb-6">
                 <h2 class="text-xl font-bold text-stone-900">Mapa de Volatilidad Esperada por Par</h2>
                 <p class="text-sm text-stone-500 mt-1">Magnitud agregada de todos los catalizadores activos. Prioriza tu análisis técnico en las barras superiores.</p>
             </div>
+            <!-- MANDATORY CHART CONTAINER -->
             <div class="chart-container">
                 <canvas id="volatilityChart"></canvas>
             </div>
@@ -115,14 +189,13 @@
 
     </main>
 
-
     <footer class="bg-stone-900 text-stone-400 py-6 text-center text-sm border-t border-stone-800 mt-auto">
         <p>FX Catalyst Assistant Pro &copy; 2026. Alertas fundamentales para Position Trading.</p>
     </footer>
 
     <script>
-        // --- API INTEGRATION (via serverless backend) ---
-        async function callGeminiSingleNews(promptText) {
+        // --- API INTEGRATION (via serverless backend — no API key needed) ---
+        async function callGeminiAPI(promptText) {
             const response = await fetch('/api/analyze', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -143,20 +216,76 @@
         }
 
         // --- DATA STORAGE ---
-        // Datos de ejemplo iniciales (se borrarán al escanear)
-        const initialMockData = [
+        const catalystsData = [
             {
-                id: 1, date: "Ejemplo Guardado", type: "Demo Inicial", icon: "📊", title: "Apreta 'Escanear Mercado' para buscar eventos reales",
-                currencyAffected: "USD", trendCode: "warning", magnitudeText: "Media (Nivel 3/5)", magnitudeVal: 50,
-                primaryPair: "EUR/USD", primaryAction: "SHORT",
-                expectedCataclysm: "Esta es una alerta de prueba. Presiona el botón 'Escanear Mercado' arriba a la derecha para conectarte a las noticias globales y buscar oportunidades reales de trading.",
-                tradeSetup: "Esperar a realizar el escaneo en vivo para obtener setups técnicos basados en la acción actual del precio.",
-                pairsToAnalyze: [{ pair: "EUR/USD", bias: "Principal" }]
+                id: 1,
+                date: "Inminente (Próximas 48h)",
+                type: "Inflación / Shock de Tasas",
+                icon: "🔥",
+                title: "Divergencia Agresiva Fed vs BCE",
+                currencyAffected: "USD",
+                trendCode: "bullish",
+                magnitudeText: "Extrema (Nivel 5/5)",
+                magnitudeVal: 95,
+                primaryPair: "EUR/USD",
+                primaryAction: "SHORT",
+                expectedCataclysm: "La inflación en EE.UU. no cede, forzando a la Fed a mantener tasas altas mientras Europa entra en recesión y el BCE recorta. Esto provocará una liquidación masiva (sell-off) del Euro frente al Dólar al romperse soportes institucionales importantes.",
+                tradeSetup: "Busca un pull-back hacia la zona de resistencia dinámica o el último alto más bajo (lower high) en D1/H4. Ejecuta un SHORT agresivo con objetivo en los mínimos anuales. El flujo de capital está abandonando Europa.",
+                pairsToAnalyze: [{ pair: "EUR/USD", bias: "Principal" }, { pair: "USD/CHF", bias: "Secundario" }]
+            },
+            {
+                id: 2,
+                date: "Gestándose (Alerta Roja)",
+                type: "Intervención Cambiaria",
+                icon: "🏛️",
+                title: "BoJ al Límite: Riesgo de Flash Crash",
+                currencyAffected: "JPY",
+                trendCode: "warning",
+                magnitudeText: "Muy Alta (Nivel 4.5/5)",
+                magnitudeVal: 90,
+                primaryPair: "GBP/JPY",
+                primaryAction: "SHORT",
+                expectedCataclysm: "El Yen está en mínimos históricos. El Banco de Japón (BoJ) está acorralado. Se espera una intervención sorpresa en el mercado de divisas (venta masiva de reservas en USD/GBP) que causará un 'Flash Crash' barriendo de 300 a 500 pips a la baja en minutos, liquidando a los compradores tardíos.",
+                tradeSetup: "Busca patrones de agotamiento alcista (ej. Doji o Envolventes bajistas) en temporalidades altas (D1). Coloca órdenes SELL STOP por debajo de soportes menores para atrapar la caída libre. NO COMPRES, el riesgo de quedar atrapado en la intervención es altísimo.",
+                pairsToAnalyze: [{ pair: "GBP/JPY", bias: "Alta volatilidad" }, { pair: "USD/JPY", bias: "Epicentro" }]
+            },
+            {
+                id: 3,
+                date: "En Desarrollo",
+                type: "Colapso Commodities",
+                icon: "📉",
+                title: "Desplome de Términos de Intercambio Oceánicos",
+                currencyAffected: "AUD",
+                trendCode: "bearish",
+                magnitudeText: "Alta (Nivel 4/5)",
+                magnitudeVal: 85,
+                primaryPair: "AUD/USD",
+                primaryAction: "SHORT",
+                expectedCataclysm: "Crisis inmobiliaria en China provoca un colapso en los precios del mineral de hierro (principal exportación de Australia). Esto destruye el valor intrínseco del Dólar Australiano. Se espera una caída en picada prolongada (tendencia bajista estructural).",
+                tradeSetup: "Estructura claramente bajista. Cualquier rebote al alza (rally de alivio) es una oportunidad para entrar en SHORT. Busca confluencias de Fibonacci en los retrocesos de la onda impulsiva bajista.",
+                pairsToAnalyze: [{ pair: "AUD/USD", bias: "Principal" }, { pair: "AUD/NZD", bias: "Secundario" }, { pair: "EUR/AUD", bias: "Inverso (BUY)" }]
+            },
+            {
+                id: 4,
+                date: "Gestándose",
+                type: "Shock Geopolítico / Refugio",
+                icon: "🛢️",
+                title: "Crisis en Rutas Marítimas y Shock Energético",
+                currencyAffected: "CAD",
+                trendCode: "bullish",
+                magnitudeText: "Alta (Nivel 4/5)",
+                magnitudeVal: 80,
+                primaryPair: "CAD/JPY",
+                primaryAction: "BUY",
+                expectedCataclysm: "Escalada de tensiones bloquea rutas clave, disparando el precio del crudo +15% repentinamente. El Dólar Canadiense (petro-divisa) sufrirá un shock de demanda brutal, apreciándose violentamente contra divisas importadoras de energía.",
+                tradeSetup: "El par cruzado ideal es CAD/JPY. Busca confirmación de ruptura alcista en consolidaciones de temporalidad H4. Entra en BUY (Largo) cabalgando la tendencia del petróleo.",
+                pairsToAnalyze: [{ pair: "CAD/JPY", bias: "Principal" }, { pair: "USD/CAD", bias: "Secundario (SHORT)" }]
             }
         ];
 
+        // --- STATE MANAGEMENT ---
         const appState = {
-            catalysts: initialMockData,
+            catalysts: catalystsData,
             currentFilter: 'all',
             chartInstance: null
         };
@@ -171,39 +300,50 @@
             },
 
             handleAIGeneration: async function() {
-
                 const inputEl = document.getElementById('ai-news-input');
                 const btn = document.getElementById('ai-generate-btn');
                 const errorMsg = document.getElementById('ai-error-msg');
                 const input = inputEl.value.trim();
+
                 if (!input) return;
-                
+
                 const originalText = btn.innerHTML;
-                btn.innerHTML = '<span class="spinner"></span> Procesando...';
+                btn.innerHTML = '<span class="spinner"></span> Consultando Oráculo IA...';
                 btn.disabled = true;
                 btn.classList.add('opacity-50', 'cursor-not-allowed');
                 errorMsg.classList.remove('opacity-100');
-                
+
                 try {
-                    const result = await callGeminiSingleNews(`Analiza esta noticia: ${input}`);
+                    const result = await callGeminiAPI(`Analiza esta noticia y genera una alerta de trading urgente: ${input}`);
                     if (result) {
                         result.id = Date.now();
-                        // Preservar fase del AI, fallback si no viene
-                        if (!result.date) result.date = "En Desarrollo";
-                        // Preservar pairsToAnalyze del AI
-                        if (!result.pairsToAnalyze || !Array.isArray(result.pairsToAnalyze)) {
-                            result.pairsToAnalyze = [{ pair: result.primaryPair, bias: "Objetivo Principal" }];
-                        }
-                        
-                        // Si solo estaba el mock data, lo borramos
-                        if(appState.catalysts.length === 1 && appState.catalysts[0].type === "Demo Inicial") {
-                            appState.catalysts = [];
-                        }
-                        
+                        if (!result.date) result.date = "¡NUEVO! Generado por IA";
+                        result.pairsToAnalyze = result.pairsToAnalyze || [{ pair: result.primaryPair, bias: "Objetivo Principal" }];
+
                         appState.catalysts.unshift(result);
-                        this.resetFilters();
-                        this.updateUI();
+                        appState.currentFilter = 'all';
+
+                        document.querySelectorAll('.filter-btn').forEach(b => {
+                            b.classList.remove('active', 'bg-stone-800', 'text-white', 'bg-rose-600', 'bg-emerald-600');
+                            if(b.getAttribute('data-filter') === 'all') {
+                                b.classList.add('active', 'bg-stone-800', 'text-white');
+                            } else {
+                                b.classList.add('bg-stone-100', 'text-stone-600');
+                                const f = b.getAttribute('data-filter');
+                                if(f === 'short') { b.classList.add('bg-rose-50', 'text-rose-600', 'border', 'border-rose-100'); b.classList.remove('bg-stone-100', 'text-stone-600'); }
+                                if(f === 'buy') { b.classList.add('bg-emerald-50', 'text-emerald-600', 'border', 'border-emerald-100'); b.classList.remove('bg-stone-100', 'text-stone-600'); }
+                            }
+                        });
+
+                        this.renderGlobalSummary();
+                        this.renderFeed();
+
+                        if (appState.chartInstance) appState.chartInstance.destroy();
+                        this.initChart();
+
                         inputEl.value = '';
+                    } else {
+                        errorMsg.classList.add('opacity-100');
                     }
                 } catch (error) {
                     errorMsg.classList.add('opacity-100');
@@ -222,7 +362,7 @@
                 btn.classList.add('opacity-80', 'cursor-not-allowed');
 
                 try {
-                    // 1. Obtener noticias de múltiples fuentes RSS para cobertura amplia
+                    // 1. Obtener noticias de múltiples fuentes RSS
                     const rssProxy = 'https://api.rss2json.com/v1/api.json?rss_url=';
                     const rssFeeds = [
                         { url: rssProxy + encodeURIComponent('https://www.forexlive.com/feed/news'), name: 'ForexLive' },
@@ -247,13 +387,13 @@
 
                     if(allItems.length === 0) throw new Error("No news found from any source");
 
-                    // 2. Preparar el texto para el AI (Top 30 noticias de todas las fuentes)
+                    // 2. Preparar el texto para el AI (Top 30 noticias)
                     const newsText = allItems.slice(0, 30).map(item => `[${item.source}] TÍTULO: ${item.title}\nRESUMEN: ${item.description}`).join('\n\n---\n\n');
 
-                    // 3. Consultar a Gemini (Modo Escaneo)
+                    // 3. Consultar al AI (Modo Escaneo)
                     const newCatalysts = await callGeminiMarketScanner(newsText);
 
-                    // 4. Filtrar pares contradictorios y actualizar
+                    // 4. Actualizar estado
                     if (newCatalysts && newCatalysts.length > 0) {
                         newCatalysts.forEach((cat, index) => {
                             cat.id = Date.now() + index;
@@ -263,7 +403,7 @@
                             }
                         });
 
-                        // Safety net: eliminar pares con señales contradictorias (BUY y SHORT del mismo par)
+                        // Safety net: eliminar pares con señales contradictorias
                         const pairDirections = {};
                         newCatalysts.forEach(cat => {
                             const pair = cat.primaryPair;
@@ -273,20 +413,31 @@
                         const conflictingPairs = Object.keys(pairDirections).filter(p => pairDirections[p].size > 1);
                         const cleanCatalysts = newCatalysts.filter(cat => !conflictingPairs.includes(cat.primaryPair));
 
-                        appState.catalysts = cleanCatalysts.length > 0 ? cleanCatalysts : newCatalysts.slice(0, 1); // fallback: al menos 1
-                        this.resetFilters();
-                        this.updateUI();
-                        
-                        // Pequeño feedback visual
+                        appState.catalysts = cleanCatalysts.length > 0 ? cleanCatalysts : newCatalysts.slice(0, 1);
+
+                        appState.currentFilter = 'all';
+                        document.querySelectorAll('.filter-btn').forEach(b => {
+                            b.classList.remove('active', 'bg-stone-800', 'text-white', 'bg-rose-600', 'bg-emerald-600');
+                            if(b.getAttribute('data-filter') === 'all') {
+                                b.classList.add('active', 'bg-stone-800', 'text-white');
+                            } else {
+                                b.classList.add('bg-stone-100', 'text-stone-600');
+                                const f = b.getAttribute('data-filter');
+                                if(f === 'short') { b.classList.add('bg-rose-50', 'text-rose-600', 'border', 'border-rose-100'); b.classList.remove('bg-stone-100', 'text-stone-600'); }
+                                if(f === 'buy') { b.classList.add('bg-emerald-50', 'text-emerald-600', 'border', 'border-emerald-100'); b.classList.remove('bg-stone-100', 'text-stone-600'); }
+                            }
+                        });
+
+                        this.renderGlobalSummary();
+                        this.renderFeed();
+                        if (appState.chartInstance) appState.chartInstance.destroy();
+                        this.initChart();
+
                         const mainContent = document.querySelector('main');
                         mainContent.style.opacity = '0.3';
                         setTimeout(() => mainContent.style.opacity = '1', 300);
-                        
                     } else {
-                        // Sin catalizadores - poco probable con el nuevo prompt, pero por si acaso
-                        appState.catalysts = [];
-                        this.updateUI();
-                        alert("📡 Escaneo completo. No se detectaron catalizadores en este momento. Intenta de nuevo en unos minutos o pega una noticia específica en el analizador manual.");
+                        alert("📡 Escaneo completo. No se detectaron catalizadores en este momento.");
                     }
 
                 } catch(e) {
@@ -299,30 +450,8 @@
                 }
             },
 
-            resetFilters: function() {
-                appState.currentFilter = 'all';
-                document.querySelectorAll('.filter-btn').forEach(b => {
-                    b.classList.remove('active', 'bg-stone-800', 'text-white', 'bg-rose-600', 'bg-emerald-600');
-                    if(b.getAttribute('data-filter') === 'all') {
-                        b.classList.add('active', 'bg-stone-800', 'text-white');
-                    } else {
-                        b.classList.add('bg-stone-100', 'text-stone-600');
-                        const f = b.getAttribute('data-filter');
-                        if(f === 'short') { b.classList.add('bg-rose-50', 'text-rose-600', 'border', 'border-rose-100'); b.classList.remove('bg-stone-100', 'text-stone-600'); }
-                        if(f === 'buy') { b.classList.add('bg-emerald-50', 'text-emerald-600', 'border', 'border-emerald-100'); b.classList.remove('bg-stone-100', 'text-stone-600'); }
-                    }
-                });
-            },
-
-            updateUI: function() {
-                this.renderGlobalSummary();
-                this.renderFeed();
-                if (appState.chartInstance) appState.chartInstance.destroy();
-                this.initChart();
-            },
-
             getStyleClasses: function(trendCode) {
-                switch(trendCode.toLowerCase()) {
+                switch(trendCode) {
                     case 'bullish': return { bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-200', symbol: '↑', word: 'FUERZA' };
                     case 'bearish': return { bg: 'bg-rose-100', text: 'text-rose-700', border: 'border-rose-200', symbol: '↓', word: 'DEBILIDAD' };
                     case 'warning': return { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-200', symbol: '⚠', word: 'PELIGRO' };
@@ -334,18 +463,18 @@
                 const container = document.getElementById('global-summary-grid');
                 container.innerHTML = '';
                 const currencies = ['USD', 'EUR', 'GBP', 'JPY', 'AUD', 'NZD', 'CAD', 'CHF'];
-                
+
                 currencies.forEach(cur => {
-                    const relatedCats = appState.catalysts.filter(c => c.currencyAffected.includes(cur));
+                    const relatedCats = appState.catalysts.filter(c => c.currencyAffected === cur);
                     let mainCat = relatedCats.length > 0 ? relatedCats.reduce((max, obj) => (max.magnitudeVal > obj.magnitudeVal) ? max : obj) : null;
-                    
+
                     let statusHtml = '';
                     let wrapperClasses = 'bg-white border border-stone-200 p-4 rounded-xl flex items-center justify-between shadow-sm';
-                    
+
                     if (mainCat) {
                         const style = this.getStyleClasses(mainCat.trendCode);
                         wrapperClasses = `bg-white border-2 ${style.border} p-4 rounded-xl flex items-center justify-between shadow-sm relative overflow-hidden`;
-                        let bgTint = mainCat.trendCode.toLowerCase() === 'bullish' ? 'bg-emerald-50' : (mainCat.trendCode.toLowerCase() === 'bearish' ? 'bg-rose-50' : 'bg-amber-50');
+                        let bgTint = mainCat.trendCode === 'bullish' ? 'bg-emerald-50' : (mainCat.trendCode === 'bearish' ? 'bg-rose-50' : 'bg-amber-50');
 
                         statusHtml = `
                             <div class="absolute inset-0 ${bgTint} opacity-50 z-0"></div>
@@ -387,11 +516,7 @@
                 }
 
                 if(filteredData.length === 0) {
-                    container.innerHTML = `<div class="p-8 text-center bg-stone-50 rounded-xl border border-stone-200 shadow-inner">
-                        <div class="text-4xl mb-3">📡</div>
-                        <h3 class="text-lg font-bold text-stone-800 mb-1">Sin Alteraciones Críticas</h3>
-                        <p class="text-sm text-stone-500 max-w-md mx-auto">No hay catalizadores extremos activos o fueron filtrados. Presiona "Escanear Mercado" para buscar nuevas disrupciones macroeconómicas.</p>
-                    </div>`;
+                    container.innerHTML = `<div class="p-6 text-center text-stone-500 bg-stone-50 rounded-lg border border-stone-200">No hay señales activas para este filtro.</div>`;
                     return;
                 }
 
@@ -407,7 +532,9 @@
 
                     const html = `
                         <div class="catalyst-card bg-white border border-stone-200 rounded-xl shadow-sm overflow-hidden ${cardBorderHover} relative">
+
                             <div class="p-5 cursor-pointer transition-colors flex flex-col md:flex-row gap-4 justify-between items-start md:items-center hover:bg-stone-50" onclick="app.toggleDetails(${cat.id})">
+
                                 <div class="flex gap-4 items-start flex-grow">
                                     <div class="text-3xl bg-stone-100 rounded-lg p-2 flex-shrink-0">${cat.icon}</div>
                                     <div>
@@ -420,6 +547,7 @@
                                         <div class="text-sm text-stone-500 mt-1">Impacto Esperado: <strong>${cat.magnitudeText}</strong></div>
                                     </div>
                                 </div>
+
                                 <div class="flex-shrink-0 w-full md:w-auto mt-4 md:mt-0 flex md:flex-col items-center md:items-end gap-2 md:gap-1">
                                     <span class="text-xs font-bold text-stone-400 uppercase tracking-widest hidden md:block">Directiva</span>
                                     <div class="${actionColorClass} text-white px-4 py-2 rounded-lg font-black text-sm shadow-md flex items-center gap-2 w-full md:w-auto justify-center ${pulseClass}">
@@ -430,18 +558,28 @@
                                     </div>
                                 </div>
                             </div>
+
                             <div id="details-${cat.id}" class="details-content bg-white border-t border-stone-100">
                                 <div class="p-0 grid grid-cols-1 md:grid-cols-2">
+
                                     <div class="p-6 bg-stone-50 border-r border-stone-100">
-                                        <h4 class="text-sm font-black text-stone-900 uppercase tracking-wider mb-3 flex items-center gap-2"><span>🌪️</span> El Cataclismo Esperado</h4>
-                                        <p class="text-sm text-stone-700 leading-relaxed font-medium">${cat.expectedCataclysm}</p>
+                                        <h4 class="text-sm font-black text-stone-900 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                            <span>🌪️</span> El Cataclismo Esperado
+                                        </h4>
+                                        <p class="text-sm text-stone-700 leading-relaxed font-medium">
+                                            ${cat.expectedCataclysm}
+                                        </p>
                                     </div>
+
                                     <div class="p-6 ${actionBgLightClass}">
-                                        <h4 class="text-sm font-black ${actionTextClass} uppercase tracking-wider mb-3 flex items-center gap-2"><span>🎯</span> Plan de Acción Técnico</h4>
+                                        <h4 class="text-sm font-black ${actionTextClass} uppercase tracking-wider mb-3 flex items-center gap-2">
+                                            <span>🎯</span> Plan de Acción Técnico
+                                        </h4>
                                         <div class="bg-white border ${actionBorderClass} rounded-lg p-4 shadow-sm mb-3">
                                             <div class="text-lg font-black ${actionTextClass} mb-2">${cat.primaryPair} ➔ ${cat.primaryAction}</div>
                                             <p class="text-sm text-stone-800 leading-relaxed">${cat.tradeSetup}</p>
                                         </div>
+
                                         <div class="mt-4">
                                             <span class="text-xs font-bold text-stone-500 uppercase">Todos los pares afectados:</span>
                                             <div class="flex flex-wrap gap-2 mt-2">
@@ -449,6 +587,7 @@
                                             </div>
                                         </div>
                                     </div>
+
                                 </div>
                             </div>
                         </div>
@@ -460,7 +599,7 @@
             toggleDetails: function(id) {
                 const el = document.getElementById(`details-${id}`);
                 const icon = document.getElementById(`icon-${id}`);
-                
+
                 if (el.classList.contains('active')) {
                     el.classList.remove('active');
                     if(icon) icon.innerText = '▼';
@@ -470,6 +609,7 @@
                         const otherIcon = document.getElementById(`icon-${node.id.split('-')[1]}`);
                         if(otherIcon) otherIcon.innerText = '▼';
                     });
+
                     el.classList.add('active');
                     if(icon) icon.innerText = '▲';
                 }
@@ -477,12 +617,6 @@
 
             initChart: function() {
                 const ctx = document.getElementById('volatilityChart').getContext('2d');
-                
-                if(appState.catalysts.length === 0) {
-                    // Chart vacio
-                    appState.chartInstance = new Chart(ctx, { type: 'bar', data: { labels: ['Sin datos'], datasets: [{ data: [0]}] }, options: { maintainAspectRatio: false, plugins: { legend: { display: false } } } });
-                    return;
-                }
 
                 const pairImpacts = {};
                 appState.catalysts.forEach(cat => {
@@ -509,7 +643,7 @@
                         datasets: [{
                             label: 'Gravedad del Catalizador',
                             data: data,
-                            backgroundColor: '#292524',
+                            backgroundColor: '#292524', // stone-800
                             borderRadius: 4,
                             barThickness: 'flex',
                             maxBarThickness: 40
@@ -522,13 +656,29 @@
                         plugins: {
                             legend: { display: false },
                             tooltip: {
-                                backgroundColor: '#1c1917', titleFont: { size: 14, weight: 'bold' }, bodyFont: { size: 13 }, padding: 12, cornerRadius: 8, displayColors: false,
-                                callbacks: { label: function(context) { return `Impacto Fundamental: ${context.parsed.x} pts`; } }
+                                backgroundColor: '#1c1917',
+                                titleFont: { size: 14, weight: 'bold' },
+                                bodyFont: { size: 13 },
+                                padding: 12,
+                                cornerRadius: 8,
+                                displayColors: false,
+                                callbacks: {
+                                    label: function(context) {
+                                        return `Impacto Fundamental: ${context.parsed.x} pts`;
+                                    }
+                                }
                             }
                         },
                         scales: {
-                            x: { grid: { color: '#f5f5f4', drawBorder: false }, title: { display: true, text: 'Nivel de Magnitud Agregada' }, min: 0 },
-                            y: { grid: { display: false, drawBorder: false }, ticks: { font: { weight: 'bold', size: 13 }, color: '#292524' } }
+                            x: {
+                                grid: { color: '#f5f5f4', drawBorder: false },
+                                title: { display: true, text: 'Nivel de Magnitud Agregada' },
+                                min: 0
+                            },
+                            y: {
+                                grid: { display: false, drawBorder: false },
+                                ticks: { font: { weight: 'bold', size: 13 }, color: '#292524' }
+                            }
                         }
                     }
                 });
@@ -541,16 +691,19 @@
                         btns.forEach(b => {
                             b.classList.remove('active', 'bg-stone-800', 'text-white', 'bg-rose-100', 'text-rose-800', 'bg-emerald-100', 'text-emerald-800');
                             b.classList.add('bg-stone-100', 'text-stone-600', 'border-transparent');
+
                             const f = b.getAttribute('data-filter');
                             if(f === 'short') { b.classList.add('bg-rose-50', 'text-rose-600', 'border', 'border-rose-100'); b.classList.remove('bg-stone-100', 'text-stone-600'); }
                             if(f === 'buy') { b.classList.add('bg-emerald-50', 'text-emerald-600', 'border', 'border-emerald-100'); b.classList.remove('bg-stone-100', 'text-stone-600'); }
                         });
+
                         const filterType = e.target.getAttribute('data-filter');
                         e.target.classList.remove('bg-stone-100', 'text-stone-600', 'bg-rose-50', 'text-rose-600', 'bg-emerald-50', 'text-emerald-600');
+
                         if(filterType === 'all') e.target.classList.add('active', 'bg-stone-800', 'text-white');
                         if(filterType === 'short') e.target.classList.add('active', 'bg-rose-600', 'text-white');
                         if(filterType === 'buy') e.target.classList.add('active', 'bg-emerald-600', 'text-white');
-                        
+
                         appState.currentFilter = filterType;
                         this.renderFeed();
                     });
@@ -558,7 +711,10 @@
             }
         };
 
-        document.addEventListener('DOMContentLoaded', () => { app.init(); });
+        document.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+
     </script>
 </body>
 </html>
