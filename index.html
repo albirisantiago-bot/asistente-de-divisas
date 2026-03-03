@@ -218,15 +218,29 @@
                 btn.classList.add('opacity-80', 'cursor-not-allowed');
 
                 try {
-                    // 1. Obtener noticias reales via RSS (Usamos ForexLive + RSS2JSON Proxy Público)
-                    const rssUrl = 'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.forexlive.com%2Ffeed%2Fnews';
-                    const response = await fetch(rssUrl);
-                    const data = await response.json();
-                    
-                    if(!data.items || data.items.length === 0) throw new Error("No news found");
+                    // 1. Obtener noticias de múltiples fuentes RSS para cobertura amplia
+                    const rssFeeds = [
+                        'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.forexlive.com%2Ffeed%2Fnews',
+                        'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Ffeeds.reuters.com%2Freuters%2FbusinessNews',
+                        'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Ffeeds.bbci.co.uk%2Fnews%2Fbusiness%2Frss.xml'
+                    ];
 
-                    // 2. Preparar el texto para Gemini (Top 15 noticias)
-                    const newsText = data.items.slice(0, 15).map(item => `TÍTULO: ${item.title}\nRESUMEN: ${item.description}`).join('\n\n---\n\n');
+                    const feedResults = await Promise.allSettled(rssFeeds.map(url => fetch(url).then(r => r.json())));
+
+                    let allItems = [];
+                    feedResults.forEach((result, i) => {
+                        if (result.status === 'fulfilled' && result.value.items) {
+                            const source = ['ForexLive', 'Reuters', 'BBC'][i];
+                            result.value.items.forEach(item => {
+                                allItems.push({ ...item, source });
+                            });
+                        }
+                    });
+
+                    if(allItems.length === 0) throw new Error("No news found from any source");
+
+                    // 2. Preparar el texto para el AI (Top 25 noticias de todas las fuentes)
+                    const newsText = allItems.slice(0, 25).map(item => `[${item.source}] TÍTULO: ${item.title}\nRESUMEN: ${item.description}`).join('\n\n---\n\n');
 
                     // 3. Consultar a Gemini (Modo Escaneo)
                     const newCatalysts = await callGeminiMarketScanner(newsText);
@@ -249,10 +263,10 @@
                         setTimeout(() => mainContent.style.opacity = '1', 300);
                         
                     } else {
-                        // El mercado está tranquilo
-                        appState.catalysts = []; // Vaciamos la lista porque todo expiró y no hay nada nuevo
+                        // Sin catalizadores - poco probable con el nuevo prompt, pero por si acaso
+                        appState.catalysts = [];
                         this.updateUI();
-                        alert("📡 Radar Completo: El mercado institucional está tranquilo en este momento. No se detectaron cataclismos críticos en las últimas noticias. Vuelve a intentar más tarde.");
+                        alert("📡 Escaneo completo. No se detectaron catalizadores en este momento. Intenta de nuevo en unos minutos o pega una noticia específica en el analizador manual.");
                     }
 
                 } catch(e) {
