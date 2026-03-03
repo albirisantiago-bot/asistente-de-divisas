@@ -39,7 +39,6 @@
                 <h1 class="text-xl font-bold tracking-tight">FX Catalyst <span class="text-emerald-400">Pro</span></h1>
             </div>
             <div class="flex items-center gap-4 text-sm font-medium">
-                <button onclick="app.openSettings()" class="hover:text-emerald-400 transition-colors cursor-pointer text-xl" title="Configurar API">⚙️</button>
                 <span class="flex items-center gap-1.5 bg-stone-800 px-3 py-1 rounded-full border border-stone-700">
                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                     Radar Activo
@@ -76,7 +75,7 @@
                     <textarea id="ai-news-input" class="w-full bg-stone-950 border border-stone-700 rounded-lg p-3 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-emerald-500 transition-colors resize-none h-24 custom-scrollbar" placeholder="Ej: La inflación en UK sube inesperadamente..."></textarea>
                     
                     <div class="flex justify-between items-center">
-                        <span id="ai-error-msg" class="text-rose-400 text-xs font-semibold opacity-0 transition-opacity">Error al conectar con la IA. Verifica tu API Key.</span>
+                        <span id="ai-error-msg" class="text-rose-400 text-xs font-semibold opacity-0 transition-opacity">Error al conectar con la IA. Intenta de nuevo en un momento.</span>
                         <button id="ai-generate-btn" onclick="app.handleAIGeneration()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-md transition-colors flex items-center gap-2 ml-auto">
                             ✨ Generar Alerta
                         </button>
@@ -116,99 +115,31 @@
 
     </main>
 
-    <div id="api-modal" class="fixed inset-0 bg-stone-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center">
-        <div class="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4 border border-stone-200">
-            <h3 class="text-xl font-bold text-stone-900 mb-2 flex items-center gap-2">🔑 Configurar Gemini API</h3>
-            <p class="text-sm text-stone-600 mb-4">Para usar los escaneos automatizados, necesitas tu propia clave de API de Google Gemini. Esta clave se guardará localmente en tu navegador de forma segura.</p>
-            <input type="password" id="api-key-input" class="w-full bg-stone-50 border border-stone-300 rounded-lg p-3 text-sm text-stone-800 focus:outline-none focus:border-emerald-500 transition-colors mb-4" placeholder="Pega tu API Key (Ej: AIzaSy...)">
-            <div class="flex justify-end gap-3">
-                <button onclick="app.closeSettings()" class="px-4 py-2 text-sm font-bold text-stone-600 hover:text-stone-900 transition-colors">Cerrar</button>
-                <button onclick="app.saveApiKey()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md transition-colors">Guardar Clave</button>
-            </div>
-            <p class="text-xs text-stone-500 mt-4 text-center">Consigue tu clave gratuita en <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-emerald-600 hover:underline">Google AI Studio</a>.</p>
-        </div>
-    </div>
 
     <footer class="bg-stone-900 text-stone-400 py-6 text-center text-sm border-t border-stone-800 mt-auto">
         <p>FX Catalyst Assistant Pro &copy; 2026. Alertas fundamentales para Position Trading.</p>
     </footer>
 
     <script>
-        // --- GEMINI API INTEGRATION ---
-        // Usamos gemini-1.5-flash que es sumamente rápido y estable para respuestas estructuradas
-        const GEMINI_MODEL = "gemini-1.5-flash"; 
-
-        async function callGeminiSingleNews(promptText, apiKey) {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
-            const systemInstruction = "Eres un analista experto en Forex institucional. Lee esta noticia y extrae un catalizador estructurado para position trading.";
-            
-            const payload = {
-                contents: [{ parts: [{ text: promptText }] }],
-                systemInstruction: { parts: [{ text: systemInstruction }] },
-                generationConfig: {
-                    responseMimeType: "application/json",
-                    responseSchema: {
-                        type: "OBJECT",
-                        properties: {
-                            title: { type: "STRING" },
-                            type: { type: "STRING" },
-                            icon: { type: "STRING" },
-                            currencyAffected: { type: "STRING" },
-                            trendCode: { type: "STRING", description: "'bullish', 'bearish', o 'warning'" },
-                            magnitudeText: { type: "STRING" },
-                            magnitudeVal: { type: "INTEGER" },
-                            primaryPair: { type: "STRING" },
-                            primaryAction: { type: "STRING", description: "'BUY' o 'SHORT'" },
-                            expectedCataclysm: { type: "STRING" },
-                            tradeSetup: { type: "STRING" }
-                        },
-                        required: ["title", "type", "icon", "currencyAffected", "trendCode", "magnitudeText", "magnitudeVal", "primaryPair", "primaryAction", "expectedCataclysm", "tradeSetup"]
-                    }
-                }
-            };
-
-            const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            if (!response.ok) throw new Error("Error en la API de Gemini");
-            const data = await response.json();
-            return JSON.parse(data.candidates[0].content.parts[0].text);
+        // --- API INTEGRATION (via serverless backend) ---
+        async function callGeminiSingleNews(promptText) {
+            const response = await fetch('/api/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ promptText })
+            });
+            if (!response.ok) throw new Error("Error en el análisis de la noticia");
+            return await response.json();
         }
 
-        async function callGeminiMarketScanner(newsTextBatch, apiKey) {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
-            const systemInstruction = "Eres un analista experto en Forex institucional. Analiza estas noticias globales recientes. Filtra el ruido diario. Extrae SOLO eventos críticos o 'cataclismos' (magnitudeVal > 75) que puedan generar fuertes tendencias en divisas G8. Si no hay nada crítico que amerite un trade, devuelve un array vacío [].";
-            
-            const payload = {
-                contents: [{ parts: [{ text: `NOTICIAS RECIENTES DEL MERCADO:\n\n${newsTextBatch}` }] }],
-                systemInstruction: { parts: [{ text: systemInstruction }] },
-                generationConfig: {
-                    responseMimeType: "application/json",
-                    responseSchema: {
-                        type: "ARRAY",
-                        items: {
-                            type: "OBJECT",
-                            properties: {
-                                title: { type: "STRING" },
-                                type: { type: "STRING" },
-                                icon: { type: "STRING" },
-                                currencyAffected: { type: "STRING" },
-                                trendCode: { type: "STRING", description: "'bullish', 'bearish', o 'warning'" },
-                                magnitudeText: { type: "STRING", description: "Ej: 'Alta (Nivel 4/5)'" },
-                                magnitudeVal: { type: "INTEGER" },
-                                primaryPair: { type: "STRING" },
-                                primaryAction: { type: "STRING", description: "'BUY' o 'SHORT'" },
-                                expectedCataclysm: { type: "STRING", description: "Contexto macro y por qué moverá el mercado" },
-                                tradeSetup: { type: "STRING", description: "Plan técnico de entrada" }
-                            },
-                            required: ["title", "type", "icon", "currencyAffected", "trendCode", "magnitudeText", "magnitudeVal", "primaryPair", "primaryAction", "expectedCataclysm", "tradeSetup"]
-                        }
-                    }
-                }
-            };
-
-            const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            if (!response.ok) throw new Error("Error en la API de Gemini durante el escaneo");
-            const data = await response.json();
-            return JSON.parse(data.candidates[0].content.parts[0].text);
+        async function callGeminiMarketScanner(newsTextBatch) {
+            const response = await fetch('/api/scan', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ newsTextBatch })
+            });
+            if (!response.ok) throw new Error("Error en el escaneo del mercado");
+            return await response.json();
         }
 
         // --- DATA STORAGE ---
@@ -218,7 +149,7 @@
                 id: 1, date: "Ejemplo Guardado", type: "Demo Inicial", icon: "📊", title: "Apreta 'Escanear Mercado' para buscar eventos reales",
                 currencyAffected: "USD", trendCode: "warning", magnitudeText: "Media (Nivel 3/5)", magnitudeVal: 50,
                 primaryPair: "EUR/USD", primaryAction: "SHORT",
-                expectedCataclysm: "Esta es una alerta de prueba. Configura tu API Key y presiona el botón 'Escanear Mercado' arriba a la derecha para conectarte a las noticias globales y buscar oportunidades reales de trading.",
+                expectedCataclysm: "Esta es una alerta de prueba. Presiona el botón 'Escanear Mercado' arriba a la derecha para conectarte a las noticias globales y buscar oportunidades reales de trading.",
                 tradeSetup: "Esperar a realizar el escaneo en vivo para obtener setups técnicos basados en la acción actual del precio.",
                 pairsToAnalyze: [{ pair: "EUR/USD", bias: "Principal" }]
             }
@@ -237,42 +168,9 @@
                 this.renderFeed();
                 this.initChart();
                 this.setupEventListeners();
-
-                if(!localStorage.getItem('gemini_api_key')) {
-                    setTimeout(() => this.openSettings(), 1500);
-                }
-            },
-
-            openSettings: function() {
-                const modal = document.getElementById('api-modal');
-                document.getElementById('api-key-input').value = localStorage.getItem('gemini_api_key') || '';
-                modal.classList.remove('hidden');
-            },
-
-            closeSettings: function() {
-                document.getElementById('api-modal').classList.add('hidden');
-            },
-
-            saveApiKey: function() {
-                const key = document.getElementById('api-key-input').value.trim();
-                if (key) {
-                    localStorage.setItem('gemini_api_key', key);
-                    this.closeSettings();
-                    
-                    const btn = document.querySelector('button[onclick="app.saveApiKey()"]');
-                    const originalText = btn.innerText;
-                    btn.innerText = '¡Guardado!';
-                    btn.classList.replace('bg-emerald-600', 'bg-stone-800');
-                    setTimeout(() => {
-                        btn.innerText = originalText;
-                        btn.classList.replace('bg-stone-800', 'bg-emerald-600');
-                    }, 1500);
-                }
             },
 
             handleAIGeneration: async function() {
-                const apiKey = localStorage.getItem('gemini_api_key');
-                if (!apiKey) { this.openSettings(); return; }
 
                 const inputEl = document.getElementById('ai-news-input');
                 const btn = document.getElementById('ai-generate-btn');
@@ -287,7 +185,7 @@
                 errorMsg.classList.remove('opacity-100');
                 
                 try {
-                    const result = await callGeminiSingleNews(`Analiza esta noticia: ${input}`, apiKey);
+                    const result = await callGeminiSingleNews(`Analiza esta noticia: ${input}`);
                     if (result) {
                         result.id = Date.now();
                         result.date = "Manual (Generado por IA)";
@@ -313,13 +211,6 @@
             },
 
             refreshData: async function() {
-                const apiKey = localStorage.getItem('gemini_api_key');
-                if (!apiKey) { 
-                    this.openSettings(); 
-                    alert("Necesitas guardar tu API Key de Gemini para conectar el radar en vivo.");
-                    return; 
-                }
-
                 const btn = document.getElementById('scan-btn');
                 const originalText = btn.innerHTML;
                 btn.innerHTML = '<span class="spinner"></span> Rastreando Mundo...';
@@ -338,7 +229,7 @@
                     const newsText = data.items.slice(0, 15).map(item => `TÍTULO: ${item.title}\nRESUMEN: ${item.description}`).join('\n\n---\n\n');
 
                     // 3. Consultar a Gemini (Modo Escaneo)
-                    const newCatalysts = await callGeminiMarketScanner(newsText, apiKey);
+                    const newCatalysts = await callGeminiMarketScanner(newsText);
 
                     // 4. Actualizar estado y borrar viejas
                     if (newCatalysts && newCatalysts.length > 0) {
