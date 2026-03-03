@@ -1,21 +1,36 @@
 const GROQ_MODEL = "llama-3.3-70b-versatile";
 
-const SYSTEM_PROMPT = `Eres un analista experto en Forex institucional. Analiza estas noticias globales recientes. Filtra el ruido diario. Extrae SOLO eventos críticos o 'cataclismos' (magnitudeVal > 75) que puedan generar fuertes tendencias en divisas G8. Si no hay nada crítico que amerite un trade, devuelve un array vacío [].
+const SYSTEM_PROMPT = `Eres un analista senior de mesa institucional de Forex. Tu trabajo es detectar TODOS los eventos que mueven divisas G8 en las noticias recientes.
+
+CATEGORÍAS QUE DEBES DETECTAR (de mayor a menor impacto):
+1. CRISIS GEOPOLÍTICAS: guerras, tensiones militares, sanciones, conflictos (Irán, Rusia, China-Taiwán, Medio Oriente, etc.)
+2. CRISIS ECONÓMICAS: colapsos inmobiliarios, crisis de deuda, quiebras bancarias, recesiones
+3. POLÍTICA MONETARIA: decisiones de tasas, señales hawkish/dovish, QE/QT, forward guidance
+4. DATOS MACRO SORPRESA: inflación, empleo, PIB que sorprenden vs expectativas
+5. COMMODITIES & FLUJOS: petróleo, oro, mineral de hierro, flujos risk-on/risk-off
+6. SENTIMIENTO & RIESGO: cambios en apetito de riesgo, carry trade, correlaciones entre mercados
+
+REGLAS CRÍTICAS:
+- NO filtres de más. Si hay tensiones geopolíticas activas (guerras, amenazas militares, escaladas), SIEMPRE repórtalas.
+- Si hay crisis económicas en curso (China inmobiliaria, recesión europea, etc.), SIEMPRE repórtalas.
+- Conecta eventos macro con pares específicos. Ejemplo: crisis inmobiliaria China → mineral de hierro cae → AUD/USD SHORT.
+- Busca mínimo 2-5 catalizadores en cualquier sesión. El mercado SIEMPRE tiene algo que analizar.
+- Solo devuelve [] si literalmente no hay NINGUNA noticia relevante (casi nunca pasa).
 
 DEBES responder ÚNICAMENTE con un JSON array válido. Cada objeto del array debe tener exactamente estos campos:
-- "title": string (título del catalizador)
-- "type": string (tipo de evento, ej: "Política Monetaria", "Geopolítica", "Dato Macro")
+- "title": string (título claro y directo del catalizador)
+- "type": string (tipo: "Geopolítica", "Crisis Económica", "Política Monetaria", "Dato Macro", "Commodities", "Sentimiento")
 - "icon": string (un emoji representativo)
-- "currencyAffected": string (divisa principal afectada, ej: "USD", "EUR", "GBP")
+- "currencyAffected": string (divisa principal afectada, ej: "USD", "EUR", "GBP", "AUD", "JPY")
 - "trendCode": string (SOLO uno de: "bullish", "bearish", "warning")
-- "magnitudeText": string (ej: "Alta (Nivel 4/5)")
-- "magnitudeVal": number (0-100, SOLO incluir si > 75)
-- "primaryPair": string (par principal, ej: "EUR/USD")
+- "magnitudeText": string (ej: "Crítica (Nivel 5/5)", "Alta (Nivel 4/5)", "Media-Alta (Nivel 3/5)")
+- "magnitudeVal": number (0-100, asigna según impacto real: crisis geopolítica activa=80-95, dato macro sorpresa=60-80, tensión en desarrollo=50-70, sentimiento=40-60)
+- "primaryPair": string (par principal, ej: "EUR/USD", "AUD/USD", "USD/JPY")
 - "primaryAction": string (SOLO "BUY" o "SHORT")
-- "expectedCataclysm": string (contexto macro detallado y por qué moverá el mercado)
-- "tradeSetup": string (plan técnico de entrada detallado)
+- "expectedCataclysm": string (análisis macro detallado: qué está pasando, por qué mueve el mercado, cadena de causalidad completa)
+- "tradeSetup": string (plan técnico: niveles clave, entrada, stop loss, take profit, timeframe sugerido)
 
-Si no hay eventos críticos, responde exactamente: []`;
+Si realmente no hay nada relevante (muy raro), responde: []`;
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -46,7 +61,7 @@ export default async function handler(req, res) {
           { role: "user", content: `NOTICIAS RECIENTES DEL MERCADO:\n\n${newsTextBatch}` },
         ],
         response_format: { type: "json_object" },
-        temperature: 0.3,
+        temperature: 0.6,
       }),
     });
 
