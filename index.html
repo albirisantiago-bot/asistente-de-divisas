@@ -188,8 +188,12 @@
                     const result = await callGeminiSingleNews(`Analiza esta noticia: ${input}`);
                     if (result) {
                         result.id = Date.now();
-                        result.date = "Manual (Generado por IA)";
-                        result.pairsToAnalyze = [{ pair: result.primaryPair, bias: "Objetivo Principal" }];
+                        // Preservar fase del AI, fallback si no viene
+                        if (!result.date) result.date = "En Desarrollo";
+                        // Preservar pairsToAnalyze del AI
+                        if (!result.pairsToAnalyze || !Array.isArray(result.pairsToAnalyze)) {
+                            result.pairsToAnalyze = [{ pair: result.primaryPair, bias: "Objetivo Principal" }];
+                        }
                         
                         // Si solo estaba el mock data, lo borramos
                         if(appState.catalysts.length === 1 && appState.catalysts[0].type === "Demo Inicial") {
@@ -249,8 +253,13 @@
                     if (newCatalysts && newCatalysts.length > 0) {
                         newCatalysts.forEach((cat, index) => {
                             cat.id = Date.now() + index;
-                            cat.date = "🔴 MERCADO EN VIVO";
-                            cat.pairsToAnalyze = [{ pair: cat.primaryPair, bias: "Objetivo" }];
+                            // Preservar la fase del AI (Inminente/Gestándose/En Desarrollo)
+                            // Solo asignar fallback si el AI no devolvió date
+                            if (!cat.date) cat.date = "En Desarrollo";
+                            // Preservar pairsToAnalyze del AI, fallback al par principal
+                            if (!cat.pairsToAnalyze || !Array.isArray(cat.pairsToAnalyze)) {
+                                cat.pairsToAnalyze = [{ pair: cat.primaryPair, bias: "Objetivo Principal" }];
+                            }
                         });
                         
                         appState.catalysts = newCatalysts; // Reemplaza todo el array viejo
