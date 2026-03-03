@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FX Assistant Pro | Rastreador de Catalizadores</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fafaf9; /* stone-50 */
+            color: #292524; /* stone-800 */
+        }
+        
+        /* Chart Container Mandatory Styling */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 250px;
+            }
+        }
+
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f5f5f4; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #a8a29e; }
+
+        .catalyst-card {
+            transition: all 0.2s ease-in-out;
+            border-left: 4px solid transparent;
+        }
+        .catalyst-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .details-content {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .details-content.active {
+            display: block;
+            opacity: 1;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .action-pulse {
+            animation: pulse-border 2s infinite;
+        }
+        @keyframes pulse-border {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        .action-pulse-red {
+            animation: pulse-border-red 2s infinite;
+        }
+        @keyframes pulse-border-red {
+            0% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(244, 63, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0); }
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-stone-900 text-stone-100 sticky top-0 z-50 shadow-md border-b-4 border-emerald-600">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl">🤖</span>
+                <h1 class="text-xl font-bold tracking-tight">FX Catalyst <span class="text-emerald-400">Pro</span></h1>
+            </div>
+            <div class="flex items-center gap-4 text-sm font-medium">
+                <button onclick="app.openSettings()" class="hover:text-emerald-400 transition-colors cursor-pointer text-xl" title="Configurar API">
+                    ⚙️
+                </button>
+                <span class="flex items-center gap-1.5 bg-stone-800 px-3 py-1 rounded-full border border-stone-700">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Radar Activo
+                </span>
+                <button onclick="app.refreshData()" class="hidden sm:flex hover:text-emerald-400 transition-colors cursor-pointer items-center gap-1">
+                    <span>🔄</span> Escanear Mercado
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-10">
+        
+        <!-- Global Summary Section -->
+        <section>
+            <div class="mb-4 flex justify-between items-end">
+                <div>
+                    <h2 class="text-2xl font-bold text-stone-900 tracking-tight">Termómetro Global</h2>
+                    <p class="text-sm text-stone-500 mt-1">Presión fundamental actual por divisa</p>
+                </div>
+            </div>
+            
+            <div id="global-summary-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <!-- Injected via JS -->
+            </div>
+        </section>
+
+        <!-- ✨ AI News Analyzer Section ✨ -->
+        <section class="bg-gradient-to-r from-stone-900 to-stone-800 rounded-xl p-6 shadow-lg border border-emerald-500/30 relative overflow-hidden mt-6">
+            <div class="absolute -right-10 -top-10 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl"></div>
+            <div class="relative z-10">
+                <h2 class="text-xl font-bold text-stone-100 flex items-center gap-2 mb-2">
+                    <span>✨</span> Analizador de Noticias en Vivo (Powered by IA)
+                </h2>
+                <p class="text-sm text-stone-400 mb-4">Pega una noticia macroeconómica, reporte de inflación o rumor geopolítico reciente. La IA evaluará instantáneamente el impacto en el mercado y creará un plan de acción técnico.</p>
+                
+                <div class="flex flex-col gap-3">
+                    <textarea id="ai-news-input" class="w-full bg-stone-950 border border-stone-700 rounded-lg p-3 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-emerald-500 transition-colors resize-none h-24 custom-scrollbar" placeholder="Ej: La inflación en UK sube inesperadamente al 4%, el mercado laboral sigue caliente y el BoE advierte que mantendrá tasas altas..."></textarea>
+                    
+                    <div class="flex justify-between items-center">
+                        <span id="ai-error-msg" class="text-rose-400 text-xs font-semibold opacity-0 transition-opacity">Error al conectar con la IA. Verifica tu API Key o conexión.</span>
+                        <button id="ai-generate-btn" onclick="app.handleAIGeneration()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-md transition-colors flex items-center gap-2 ml-auto">
+                            ✨ Generar Alerta de Trading
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Detailed Catalysts Feed & Action Plans -->
+        <section>
+            <div class="mb-6 flex flex-col md:flex-row md:justify-between md:items-center border-b border-stone-200 pb-4 gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-stone-900 tracking-tight flex items-center gap-2">
+                        <span>⚡</span> Alertas de Acción & Cataclismos
+                    </h2>
+                    <p class="text-sm text-stone-500 mt-1">Eventos críticos inminentes y directivas de position trading recomendadas.</p>
+                </div>
+                <div class="flex gap-2">
+                    <button class="filter-btn active px-3 py-1.5 text-xs font-semibold rounded-md bg-stone-800 text-white" data-filter="all">Todos</button>
+                    <button class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-md bg-rose-100 text-rose-800 hover:bg-rose-200 border border-rose-200" data-filter="short">Solo SHORTS</button>
+                    <button class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-md bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border border-emerald-200" data-filter="buy">Solo BUYS</button>
+                </div>
+            </div>
+
+            <div id="catalyst-feed" class="space-y-4">
+                <!-- Injected via JS -->
+            </div>
+        </section>
+
+        <!-- Chart Section -->
+        <section class="bg-white rounded-xl p-6 shadow-sm border border-stone-200">
+            <div class="mb-6">
+                <h2 class="text-xl font-bold text-stone-900">Mapa de Volatilidad Esperada por Par</h2>
+                <p class="text-sm text-stone-500 mt-1">Magnitud agregada de todos los catalizadores activos. Prioriza tu análisis técnico en las barras superiores.</p>
+            </div>
+            <!-- MANDATORY CHART CONTAINER -->
+            <div class="chart-container">
+                <canvas id="volatilityChart"></canvas>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal Configuración API -->
+    <div id="api-modal" class="fixed inset-0 bg-stone-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4 border border-stone-200">
+            <h3 class="text-xl font-bold text-stone-900 mb-2 flex items-center gap-2">🔑 Configurar Gemini API</h3>
+            <p class="text-sm text-stone-600 mb-4">Para usar el Analizador de IA, necesitas tu propia clave de API de Google Gemini. Esta clave se guardará localmente en tu navegador de forma segura.</p>
+            <input type="password" id="api-key-input" class="w-full bg-stone-50 border border-stone-300 rounded-lg p-3 text-sm text-stone-800 focus:outline-none focus:border-emerald-500 transition-colors mb-4" placeholder="Pega tu API Key (Ej: AIzaSy...)">
+            <div class="flex justify-end gap-3">
+                <button onclick="app.closeSettings()" class="px-4 py-2 text-sm font-bold text-stone-600 hover:text-stone-900 transition-colors">Cerrar</button>
+                <button onclick="app.saveApiKey()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md transition-colors">Guardar Clave</button>
+            </div>
+            <p class="text-xs text-stone-500 mt-4 text-center">Consigue tu clave gratuita en <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-emerald-600 hover:underline">Google AI Studio</a>.</p>
+        </div>
+    </div>
+
+    <footer class="bg-stone-900 text-stone-400 py-6 text-center text-sm border-t border-stone-800 mt-auto">
+        <p>FX Catalyst Assistant Pro &copy; 2026. Alertas fundamentales para Position Trading.</p>
+    </footer>
+
+    <script>
+        // --- GEMINI API INTEGRATION ---
+        async function callGeminiAPI(promptText, retries = 5) {
+            const apiKey = localStorage.getItem('gemini_api_key');
+            if (!apiKey) {
+                app.openSettings();
+                throw new Error("API Key no configurada");
+            }
+            
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            
+            const systemInstruction = "Eres un analista experto en Forex institucional. Tu tarea es leer una noticia y extraer un catalizador estructurado para position trading.";
+            
+            const payload = {
+                contents: [{ parts: [{ text: promptText }] }],
+                systemInstruction: { parts: [{ text: systemInstruction }] },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            title: { type: "STRING", description: "Título impactante del evento" },
+                            type: { type: "STRING", description: "Categoría (ej. Inflación, Geopolítica)" },
+                            icon: { type: "STRING", description: "Un solo emoji representativo" },
+                            currencyAffected: { type: "STRING", description: "Divisa base afectada (USD, EUR, GBP, JPY, AUD, NZD, CAD, CHF)" },
+                            trendCode: { type: "STRING", description: "Debe ser estrictamente 'bullish', 'bearish', o 'warning'" },
+                            magnitudeText: { type: "STRING", description: "Gravedad, ej. 'Extrema (Nivel 5/5)' o 'Alta (Nivel 4/5)'" },
+                            magnitudeVal: { type: "INTEGER", description: "Severidad del 1 al 100" },
+                            primaryPair: { type: "STRING", description: "El par óptimo para operar (ej. EUR/USD, GBP/JPY)" },
+                            primaryAction: { type: "STRING", description: "Debe ser 'BUY' o 'SHORT'" },
+                            expectedCataclysm: { type: "STRING", description: "Contexto macro y el cataclismo esperado" },
+                            tradeSetup: { type: "STRING", description: "Plan técnico de entrada y zonas clave" }
+                        },
+                        required: ["title", "type", "icon", "currencyAffected", "trendCode", "magnitudeText", "magnitudeVal", "primaryPair", "primaryAction", "expectedCataclysm", "tradeSetup"]
+                    }
+                }
+            };
+
+            const delays = [1000, 2000, 4000, 8000, 16000];
+            
+            for (let attempt = 0; attempt <= retries; attempt++) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const data = await response.json();
+                    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                    return JSON.parse(text);
+                } catch (error) {
+                    if (attempt === retries) return null;
+                    await new Promise(res => setTimeout(res, delays[attempt]));
+                }
+            }
+        }
+
+        // --- DATA STORAGE ---
+        const catalystsData = [
+            {
+                id: 1,
+                date: "Inminente (Próximas 48h)",
+                type: "Inflación / Shock de Tasas",
+                icon: "🔥",
+                title: "Divergencia Agresiva Fed vs BCE",
+                currencyAffected: "USD",
+                trendCode: "bullish",
+                magnitudeText: "Extrema (Nivel 5/5)",
+                magnitudeVal: 95,
+                primaryPair: "EUR/USD",
+                primaryAction: "SHORT",
+                expectedCataclysm: "La inflación en EE.UU. no cede, forzando a la Fed a mantener tasas altas mientras Europa entra en recesión y el BCE recorta. Esto provocará una liquidación masiva (sell-off) del Euro frente al Dólar al romperse soportes institucionales importantes.",
+                tradeSetup: "Busca un pull-back hacia la zona de resistencia dinámica o el último alto más bajo (lower high) en D1/H4. Ejecuta un SHORT agresivo con objetivo en los mínimos anuales. El flujo de capital está abandonando Europa.",
+                pairsToAnalyze: [{ pair: "EUR/USD", bias: "Principal" }, { pair: "USD/CHF", bias: "Secundario" }]
+            },
+            {
+                id: 2,
+                date: "Gestándose (Alerta Roja)",
+                type: "Intervención Cambiaria",
+                icon: "🏛️",
+                title: "BoJ al Límite: Riesgo de Flash Crash",
+                currencyAffected: "JPY",
+                trendCode: "warning",
+                magnitudeText: "Muy Alta (Nivel 4.5/5)",
+                magnitudeVal: 90,
+                primaryPair: "GBP/JPY",
+                primaryAction: "SHORT",
+                expectedCataclysm: "El Yen está en mínimos históricos. El Banco de Japón (BoJ) está acorralado. Se espera una intervención sorpresa en el mercado de divisas (venta masiva de reservas en USD/GBP) que causará un 'Flash Crash' barriendo de 300 a 500 pips a la baja en minutos, liquidando a los compradores tardíos.",
+                tradeSetup: "Busca patrones de agotamiento alcista (ej. Doji o Envolventes bajistas) en temporalidades altas (D1). Coloca órdenes SELL STOP por debajo de soportes menores para atrapar la caída libre. NO COMPRES, el riesgo de quedar atrapado en la intervención es altísimo.",
+                pairsToAnalyze: [{ pair: "GBP/JPY", bias: "Alta volatilidad" }, { pair: "USD/JPY", bias: "Epicentro" }]
+            },
+            {
+                id: 3,
+                date: "En Desarrollo",
+                type: "Colapso Commodities",
+                icon: "📉",
+                title: "Desplome de Términos de Intercambio Oceánicos",
+                currencyAffected: "AUD",
+                trendCode: "bearish",
+                magnitudeText: "Alta (Nivel 4/5)",
+                magnitudeVal: 85,
+                primaryPair: "AUD/USD",
+                primaryAction: "SHORT",
+                expectedCataclysm: "Crisis inmobiliaria en China provoca un colapso en los precios del mineral de hierro (principal exportación de Australia). Esto destruye el valor intrínseco del Dólar Australiano. Se espera una caída en picada prolongada (tendencia bajista estructural).",
+                tradeSetup: "Estructura claramente bajista. Cualquier rebote al alza (rally de alivio) es una oportunidad para entrar en SHORT. Busca confluencias de Fibonacci en los retrocesos de la onda impulsiva bajista.",
+                pairsToAnalyze: [{ pair: "AUD/USD", bias: "Principal" }, { pair: "AUD/NZD", bias: "Secundario" }, { pair: "EUR/AUD", bias: "Inverso (BUY)" }]
+            },
+            {
+                id: 4,
+                date: "Gestándose",
+                type: "Shock Geopolítico / Refugio",
+                icon: "🛢️",
+                title: "Crisis en Rutas Marítimas y Shock Energético",
+                currencyAffected: "CAD",
+                trendCode: "bullish",
+                magnitudeText: "Alta (Nivel 4/5)",
+                magnitudeVal: 80,
+                primaryPair: "CAD/JPY",
+                primaryAction: "BUY",
+                expectedCataclysm: "Escalada de tensiones bloquea rutas clave, disparando el precio del crudo +15% repentinamente. El Dólar Canadiense (petro-divisa) sufrirá un shock de demanda brutal, apreciándose violentamente contra divisas importadoras de energía.",
+                tradeSetup: "El par cruzado ideal es CAD/JPY. Busca confirmación de ruptura alcista en consolidaciones de temporalidad H4. Entra en BUY (Largo) cabalgando la tendencia del petróleo.",
+                pairsToAnalyze: [{ pair: "CAD/JPY", bias: "Principal" }, { pair: "USD/CAD", bias: "Secundario (SHORT)" }]
+            }
+        ];
+
+        // --- STATE MANAGEMENT ---
+        const appState = {
+            catalysts: catalystsData,
+            currentFilter: 'all',
+            chartInstance: null
+        };
+
+        // --- CORE LOGIC & RENDERING ---
+        const app = {
+            init: function() {
+                this.renderGlobalSummary();
+                this.renderFeed();
+                this.initChart();
+                this.setupEventListeners();
+
+                // Sugerir poner la API Key la primera vez
+                if(!localStorage.getItem('gemini_api_key')) {
+                    setTimeout(() => this.openSettings(), 1500);
+                }
+            },
+
+            openSettings: function() {
+                const modal = document.getElementById('api-modal');
+                const input = document.getElementById('api-key-input');
+                input.value = localStorage.getItem('gemini_api_key') || '';
+                modal.classList.remove('hidden');
+            },
+
+            closeSettings: function() {
+                document.getElementById('api-modal').classList.add('hidden');
+            },
+
+            saveApiKey: function() {
+                const key = document.getElementById('api-key-input').value.trim();
+                if (key) {
+                    localStorage.setItem('gemini_api_key', key);
+                    this.closeSettings();
+                    
+                    const btn = document.querySelector('button[onclick="app.saveApiKey()"]');
+                    const originalText = btn.innerText;
+                    btn.innerText = '¡Guardado!';
+                    btn.classList.replace('bg-emerald-600', 'bg-stone-800');
+                    setTimeout(() => {
+                        btn.innerText = originalText;
+                        btn.classList.replace('bg-stone-800', 'bg-emerald-600');
+                    }, 1500);
+                }
+            },
+
+            handleAIGeneration: async function() {
+                const inputEl = document.getElementById('ai-news-input');
+                const btn = document.getElementById('ai-generate-btn');
+                const errorMsg = document.getElementById('ai-error-msg');
+                const input = inputEl.value.trim();
+                
+                if (!input) return;
+                
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<span>⏳</span> Consultando Oráculo IA...';
+                btn.disabled = true;
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+                errorMsg.classList.remove('opacity-100');
+                
+                try {
+                    const result = await callGeminiAPI(`Analiza esta noticia y genera una alerta de trading urgente: ${input}`);
+                    if (result) {
+                        result.id = Date.now();
+                        result.date = "¡NUEVO! Generado por IA";
+                        result.pairsToAnalyze = [{ pair: result.primaryPair, bias: "Objetivo Principal" }];
+                        
+                        appState.catalysts.unshift(result);
+                        appState.currentFilter = 'all'; 
+                        
+                        document.querySelectorAll('.filter-btn').forEach(b => {
+                            b.classList.remove('active', 'bg-stone-800', 'text-white', 'bg-rose-600', 'bg-emerald-600');
+                            if(b.getAttribute('data-filter') === 'all') {
+                                b.classList.add('active', 'bg-stone-800', 'text-white');
+                            } else {
+                                b.classList.add('bg-stone-100', 'text-stone-600');
+                                const f = b.getAttribute('data-filter');
+                                if(f === 'short') { b.classList.add('bg-rose-50', 'text-rose-600', 'border', 'border-rose-100'); b.classList.remove('bg-stone-100', 'text-stone-600'); }
+                                if(f === 'buy') { b.classList.add('bg-emerald-50', 'text-emerald-600', 'border', 'border-emerald-100'); b.classList.remove('bg-stone-100', 'text-stone-600'); }
+                            }
+                        });
+
+                        this.renderGlobalSummary();
+                        this.renderFeed();
+                        
+                        if (appState.chartInstance) appState.chartInstance.destroy();
+                        this.initChart();
+                        
+                        inputEl.value = '';
+                    } else {
+                        errorMsg.classList.add('opacity-100');
+                    }
+                } catch (error) {
+                    if(error.message !== "API Key no configurada") {
+                        errorMsg.classList.add('opacity-100');
+                    }
+                } finally {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            },
+
+            refreshData: function() {
+                const btn = document.querySelector('header button[onclick="app.refreshData()"]');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<span>⏳</span> Escaneando...';
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    const mainContent = document.querySelector('main');
+                    mainContent.style.opacity = '0.5';
+                    setTimeout(() => mainContent.style.opacity = '1', 200);
+                }, 800);
+            },
+
+            getStyleClasses: function(trendCode) {
+                switch(trendCode) {
+                    case 'bullish': return { bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-200', symbol: '↑', word: 'FUERZA' };
+                    case 'bearish': return { bg: 'bg-rose-100', text: 'text-rose-700', border: 'border-rose-200', symbol: '↓', word: 'DEBILIDAD' };
+                    case 'warning': return { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-200', symbol: '⚠', word: 'PELIGRO' };
+                    default: return { bg: 'bg-stone-100', text: 'text-stone-700', border: 'border-stone-200', symbol: '·', word: 'NEUTRAL' };
+                }
+            },
+
+            renderGlobalSummary: function() {
+                const container = document.getElementById('global-summary-grid');
+                container.innerHTML = '';
+                const currencies = ['USD', 'EUR', 'GBP', 'JPY', 'AUD', 'NZD', 'CAD', 'CHF'];
+                
+                currencies.forEach(cur => {
+                    const relatedCats = appState.catalysts.filter(c => c.currencyAffected === cur);
+                    let mainCat = relatedCats.length > 0 ? relatedCats.reduce((max, obj) => (max.magnitudeVal > obj.magnitudeVal) ? max : obj) : null;
+                    
+                    let statusHtml = '';
+                    let wrapperClasses = 'bg-white border border-stone-200 p-4 rounded-xl flex items-center justify-between shadow-sm';
+                    
+                    if (mainCat) {
+                        const style = this.getStyleClasses(mainCat.trendCode);
+                        wrapperClasses = `bg-white border-2 ${style.border} p-4 rounded-xl flex items-center justify-between shadow-sm relative overflow-hidden`;
+                        let bgTint = mainCat.trendCode === 'bullish' ? 'bg-emerald-50' : (mainCat.trendCode === 'bearish' ? 'bg-rose-50' : 'bg-amber-50');
+
+                        statusHtml = `
+                            <div class="absolute inset-0 ${bgTint} opacity-50 z-0"></div>
+                            <div class="relative z-10 flex flex-col items-end">
+                                <span class="text-2xl font-black ${style.text}">${style.symbol}</span>
+                                <span class="text-xs font-bold ${style.text} mt-1 uppercase tracking-wider">${style.word}</span>
+                            </div>
+                        `;
+                    } else {
+                        statusHtml = `
+                            <div class="flex flex-col items-end">
+                                <span class="text-stone-300 text-lg font-bold">-</span>
+                                <span class="text-xs text-stone-400 mt-1 uppercase">Neutral</span>
+                            </div>
+                        `;
+                    }
+
+                    const card = `
+                        <div class="${wrapperClasses}">
+                            <div class="relative z-10">
+                                <div class="text-lg font-bold text-stone-800">${cur}</div>
+                            </div>
+                            ${statusHtml}
+                        </div>
+                    `;
+                    container.innerHTML += card;
+                });
+            },
+
+            renderFeed: function() {
+                const container = document.getElementById('catalyst-feed');
+                container.innerHTML = '';
+
+                let filteredData = appState.catalysts;
+                if (appState.currentFilter === 'short') {
+                    filteredData = appState.catalysts.filter(c => c.primaryAction === 'SHORT');
+                } else if (appState.currentFilter === 'buy') {
+                    filteredData = appState.catalysts.filter(c => c.primaryAction === 'BUY');
+                }
+
+                if(filteredData.length === 0) {
+                    container.innerHTML = `<div class="p-6 text-center text-stone-500 bg-stone-50 rounded-lg border border-stone-200">No hay señales activas para este filtro.</div>`;
+                    return;
+                }
+
+                filteredData.forEach(cat => {
+                    const isShort = cat.primaryAction === 'SHORT';
+                    const actionColorClass = isShort ? 'bg-rose-600' : 'bg-emerald-600';
+                    const actionBgLightClass = isShort ? 'bg-rose-50' : 'bg-emerald-50';
+                    const actionBorderClass = isShort ? 'border-rose-200' : 'border-emerald-200';
+                    const actionTextClass = isShort ? 'text-rose-700' : 'text-emerald-700';
+                    const actionIconText = isShort ? '📉 VENDER (SHORT)' : '📈 COMPRAR (BUY)';
+                    const cardBorderHover = isShort ? 'hover:border-rose-400' : 'hover:border-emerald-400';
+                    const pulseClass = isShort ? 'action-pulse-red' : 'action-pulse';
+
+                    const html = `
+                        <div class="catalyst-card bg-white border border-stone-200 rounded-xl shadow-sm overflow-hidden ${cardBorderHover} relative">
+                            
+                            <div class="p-5 cursor-pointer transition-colors flex flex-col md:flex-row gap-4 justify-between items-start md:items-center hover:bg-stone-50" onclick="app.toggleDetails(${cat.id})">
+                                
+                                <div class="flex gap-4 items-start flex-grow">
+                                    <div class="text-3xl bg-stone-100 rounded-lg p-2 flex-shrink-0">${cat.icon}</div>
+                                    <div>
+                                        <div class="flex flex-wrap items-center gap-2 mb-1">
+                                            <span class="text-xs font-bold px-2 py-0.5 rounded bg-stone-800 text-stone-100 uppercase tracking-wider">${cat.currencyAffected}</span>
+                                            <span class="text-xs font-medium text-stone-500">${cat.type}</span>
+                                            <span class="text-xs font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-100">${cat.date}</span>
+                                        </div>
+                                        <h3 class="text-lg font-extrabold text-stone-900 leading-snug">${cat.title}</h3>
+                                        <div class="text-sm text-stone-500 mt-1">Impacto Esperado: <strong>${cat.magnitudeText}</strong></div>
+                                    </div>
+                                </div>
+
+                                <div class="flex-shrink-0 w-full md:w-auto mt-4 md:mt-0 flex md:flex-col items-center md:items-end gap-2 md:gap-1">
+                                    <span class="text-xs font-bold text-stone-400 uppercase tracking-widest hidden md:block">Directiva</span>
+                                    <div class="${actionColorClass} text-white px-4 py-2 rounded-lg font-black text-sm shadow-md flex items-center gap-2 w-full md:w-auto justify-center ${pulseClass}">
+                                        ${actionIconText} ${cat.primaryPair}
+                                    </div>
+                                    <div class="text-stone-400 font-bold px-2 hidden sm:block">
+                                        <span id="icon-${cat.id}" class="text-xl">▼</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="details-${cat.id}" class="details-content bg-white border-t border-stone-100">
+                                <div class="p-0 grid grid-cols-1 md:grid-cols-2">
+                                    
+                                    <div class="p-6 bg-stone-50 border-r border-stone-100">
+                                        <h4 class="text-sm font-black text-stone-900 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                            <span>🌪️</span> El Cataclismo Esperado
+                                        </h4>
+                                        <p class="text-sm text-stone-700 leading-relaxed font-medium">
+                                            ${cat.expectedCataclysm}
+                                        </p>
+                                    </div>
+                                    
+                                    <div class="p-6 ${actionBgLightClass}">
+                                        <h4 class="text-sm font-black ${actionTextClass} uppercase tracking-wider mb-3 flex items-center gap-2">
+                                            <span>🎯</span> Plan de Acción Técnico
+                                        </h4>
+                                        <div class="bg-white border ${actionBorderClass} rounded-lg p-4 shadow-sm mb-3">
+                                            <div class="text-lg font-black ${actionTextClass} mb-2">${cat.primaryPair} ➔ ${cat.primaryAction}</div>
+                                            <p class="text-sm text-stone-800 leading-relaxed">${cat.tradeSetup}</p>
+                                        </div>
+                                        
+                                        <div class="mt-4">
+                                            <span class="text-xs font-bold text-stone-500 uppercase">Todos los pares afectados:</span>
+                                            <div class="flex flex-wrap gap-2 mt-2">
+                                                ${cat.pairsToAnalyze.map(p => `<span class="text-xs font-semibold px-2 py-1 bg-white border border-stone-200 rounded text-stone-700 shadow-sm">${p.pair}</span>`).join('')}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    container.innerHTML += html;
+                });
+            },
+
+            toggleDetails: function(id) {
+                const el = document.getElementById(`details-${id}`);
+                const icon = document.getElementById(`icon-${id}`);
+                
+                if (el.classList.contains('active')) {
+                    el.classList.remove('active');
+                    if(icon) icon.innerText = '▼';
+                } else {
+                    document.querySelectorAll('.details-content.active').forEach(node => {
+                        node.classList.remove('active');
+                        const otherIcon = document.getElementById(`icon-${node.id.split('-')[1]}`);
+                        if(otherIcon) otherIcon.innerText = '▼';
+                    });
+                    
+                    el.classList.add('active');
+                    if(icon) icon.innerText = '▲';
+                }
+            },
+
+            initChart: function() {
+                const ctx = document.getElementById('volatilityChart').getContext('2d');
+                
+                const pairImpacts = {};
+                appState.catalysts.forEach(cat => {
+                    cat.pairsToAnalyze.forEach(p => {
+                        if (!pairImpacts[p.pair]) pairImpacts[p.pair] = 0;
+                        pairImpacts[p.pair] += cat.magnitudeVal;
+                    });
+                });
+
+                const sortedPairs = Object.entries(pairImpacts)
+                    .sort(([,a], [,b]) => b - a)
+                    .slice(0, 6);
+
+                const labels = sortedPairs.map(item => item[0]);
+                const data = sortedPairs.map(item => item[1]);
+
+                Chart.defaults.font.family = "'Inter', sans-serif";
+                Chart.defaults.color = '#78716c';
+
+                appState.chartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Gravedad del Catalizador',
+                            data: data,
+                            backgroundColor: '#292524', // stone-800
+                            borderRadius: 4,
+                            barThickness: 'flex',
+                            maxBarThickness: 40
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: '#1c1917',
+                                titleFont: { size: 14, weight: 'bold' },
+                                bodyFont: { size: 13 },
+                                padding: 12,
+                                cornerRadius: 8,
+                                displayColors: false,
+                                callbacks: {
+                                    label: function(context) {
+                                        return `Impacto Fundamental: ${context.parsed.x} pts`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { color: '#f5f5f4', drawBorder: false },
+                                title: { display: true, text: 'Nivel de Magnitud Agregada' },
+                                min: 0
+                            },
+                            y: {
+                                grid: { display: false, drawBorder: false },
+                                ticks: { font: { weight: 'bold', size: 13 }, color: '#292524' }
+                            }
+                        }
+                    }
+                });
+            },
+
+            setupEventListeners: function() {
+                const btns = document.querySelectorAll('.filter-btn');
+                btns.forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        btns.forEach(b => {
+                            b.classList.remove('active', 'bg-stone-800', 'text-white', 'bg-rose-100', 'text-rose-800', 'bg-emerald-100', 'text-emerald-800');
+                            b.classList.add('bg-stone-100', 'text-stone-600', 'border-transparent');
+                            
+                            const f = b.getAttribute('data-filter');
+                            if(f === 'short') { b.classList.add('bg-rose-50', 'text-rose-600', 'border', 'border-rose-100'); b.classList.remove('bg-stone-100', 'text-stone-600'); }
+                            if(f === 'buy') { b.classList.add('bg-emerald-50', 'text-emerald-600', 'border', 'border-emerald-100'); b.classList.remove('bg-stone-100', 'text-stone-600'); }
+                        });
+                        
+                        const filterType = e.target.getAttribute('data-filter');
+                        e.target.classList.remove('bg-stone-100', 'text-stone-600', 'bg-rose-50', 'text-rose-600', 'bg-emerald-50', 'text-emerald-600');
+                        
+                        if(filterType === 'all') e.target.classList.add('active', 'bg-stone-800', 'text-white');
+                        if(filterType === 'short') e.target.classList.add('active', 'bg-rose-600', 'text-white');
+                        if(filterType === 'buy') e.target.classList.add('active', 'bg-emerald-600', 'text-white');
+                        
+                        appState.currentFilter = filterType;
+                        this.renderFeed();
+                    });
+                });
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+
+    </script>
+</body>
+</html>
