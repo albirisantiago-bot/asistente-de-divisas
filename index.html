@@ -188,8 +188,12 @@
                     const result = await callGeminiSingleNews(`Analiza esta noticia: ${input}`);
                     if (result) {
                         result.id = Date.now();
-                        result.date = "Manual (Generado por IA)";
-                        result.pairsToAnalyze = [{ pair: result.primaryPair, bias: "Objetivo Principal" }];
+                        // Preservar fase del AI, fallback si no viene
+                        if (!result.date) result.date = "En Desarrollo";
+                        // Preservar pairsToAnalyze del AI
+                        if (!result.pairsToAnalyze || !Array.isArray(result.pairsToAnalyze)) {
+                            result.pairsToAnalyze = [{ pair: result.primaryPair, bias: "Objetivo Principal" }];
+                        }
                         
                         // Si solo estaba el mock data, lo borramos
                         if(appState.catalysts.length === 1 && appState.catalysts[0].type === "Demo Inicial") {
@@ -219,41 +223,57 @@
 
                 try {
                     // 1. Obtener noticias de múltiples fuentes RSS para cobertura amplia
+                    const rssProxy = 'https://api.rss2json.com/v1/api.json?rss_url=';
                     const rssFeeds = [
-                        'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.forexlive.com%2Ffeed%2Fnews',
-                        'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Ffeeds.reuters.com%2Freuters%2FbusinessNews',
-                        'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Ffeeds.bbci.co.uk%2Fnews%2Fbusiness%2Frss.xml'
+                        { url: rssProxy + encodeURIComponent('https://www.forexlive.com/feed/news'), name: 'ForexLive' },
+                        { url: rssProxy + encodeURIComponent('https://feeds.reuters.com/reuters/businessNews'), name: 'Reuters Business' },
+                        { url: rssProxy + encodeURIComponent('https://feeds.reuters.com/Reuters/worldNews'), name: 'Reuters World' },
+                        { url: rssProxy + encodeURIComponent('https://feeds.bbci.co.uk/news/business/rss.xml'), name: 'BBC Business' },
+                        { url: rssProxy + encodeURIComponent('https://feeds.bbci.co.uk/news/world/rss.xml'), name: 'BBC World' },
+                        { url: rssProxy + encodeURIComponent('https://rss.nytimes.com/services/xml/rss/nyt/World.xml'), name: 'NYT World' },
+                        { url: rssProxy + encodeURIComponent('https://www.cnbc.com/id/100727362/device/rss/rss.html'), name: 'CNBC Economy' },
                     ];
 
-                    const feedResults = await Promise.allSettled(rssFeeds.map(url => fetch(url).then(r => r.json())));
+                    const feedResults = await Promise.allSettled(rssFeeds.map(f => fetch(f.url).then(r => r.json())));
 
                     let allItems = [];
                     feedResults.forEach((result, i) => {
                         if (result.status === 'fulfilled' && result.value.items) {
-                            const source = ['ForexLive', 'Reuters', 'BBC'][i];
                             result.value.items.forEach(item => {
-                                allItems.push({ ...item, source });
+                                allItems.push({ ...item, source: rssFeeds[i].name });
                             });
                         }
                     });
 
                     if(allItems.length === 0) throw new Error("No news found from any source");
 
-                    // 2. Preparar el texto para el AI (Top 25 noticias de todas las fuentes)
-                    const newsText = allItems.slice(0, 25).map(item => `[${item.source}] TÍTULO: ${item.title}\nRESUMEN: ${item.description}`).join('\n\n---\n\n');
+                    // 2. Preparar el texto para el AI (Top 30 noticias de todas las fuentes)
+                    const newsText = allItems.slice(0, 30).map(item => `[${item.source}] TÍTULO: ${item.title}\nRESUMEN: ${item.description}`).join('\n\n---\n\n');
 
                     // 3. Consultar a Gemini (Modo Escaneo)
                     const newCatalysts = await callGeminiMarketScanner(newsText);
 
-                    // 4. Actualizar estado y borrar viejas
+                    // 4. Filtrar pares contradictorios y actualizar
                     if (newCatalysts && newCatalysts.length > 0) {
                         newCatalysts.forEach((cat, index) => {
                             cat.id = Date.now() + index;
-                            cat.date = "🔴 MERCADO EN VIVO";
-                            cat.pairsToAnalyze = [{ pair: cat.primaryPair, bias: "Objetivo" }];
+                            if (!cat.date) cat.date = "En Desarrollo";
+                            if (!cat.pairsToAnalyze || !Array.isArray(cat.pairsToAnalyze)) {
+                                cat.pairsToAnalyze = [{ pair: cat.primaryPair, bias: "Objetivo Principal" }];
+                            }
                         });
-                        
-                        appState.catalysts = newCatalysts; // Reemplaza todo el array viejo
+
+                        // Safety net: eliminar pares con señales contradictorias (BUY y SHORT del mismo par)
+                        const pairDirections = {};
+                        newCatalysts.forEach(cat => {
+                            const pair = cat.primaryPair;
+                            if (!pairDirections[pair]) pairDirections[pair] = new Set();
+                            pairDirections[pair].add(cat.primaryAction);
+                        });
+                        const conflictingPairs = Object.keys(pairDirections).filter(p => pairDirections[p].size > 1);
+                        const cleanCatalysts = newCatalysts.filter(cat => !conflictingPairs.includes(cat.primaryPair));
+
+                        appState.catalysts = cleanCatalysts.length > 0 ? cleanCatalysts : newCatalysts.slice(0, 1); // fallback: al menos 1
                         this.resetFilters();
                         this.updateUI();
                         

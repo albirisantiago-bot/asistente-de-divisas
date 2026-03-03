@@ -1,19 +1,23 @@
 const GROQ_MODEL = "llama-3.3-70b-versatile";
 
-const SYSTEM_PROMPT = `Eres un analista experto en Forex institucional. Lee esta noticia y extrae un catalizador estructurado para position trading.
+const SYSTEM_PROMPT = `Eres un analista senior de mesa institucional de Forex especializado en swing y position trading. Analiza esta noticia y extrae un catalizador estructurado enfocado en cambios estructurales serios: conflictos geopolíticos, crisis económicas, shocks energéticos, divergencias monetarias extremas.
+
+Conecta SIEMPRE la cadena causal completa: evento → commodity/flujo afectado → divisa → par → dirección.
 
 DEBES responder ÚNICAMENTE con un JSON object válido con exactamente estos campos:
-- "title": string (título del catalizador)
-- "type": string (tipo de evento, ej: "Política Monetaria", "Geopolítica", "Dato Macro")
+- "date": string (fase: "Inminente (Próximas 48h)", "Gestándose (Alerta Roja)", o "En Desarrollo")
+- "title": string (título claro del catalizador)
+- "type": string (tipo: "Conflicto Geopolítico", "Crisis Económica", "Shock Energético", "Intervención Cambiaria", "Colapso Commodities", "Divergencia Monetaria")
 - "icon": string (un emoji representativo)
-- "currencyAffected": string (divisa principal afectada, ej: "USD", "EUR", "GBP")
+- "currencyAffected": string (divisa principal afectada, ej: "USD", "EUR", "GBP", "AUD", "JPY")
 - "trendCode": string (SOLO uno de: "bullish", "bearish", "warning")
-- "magnitudeText": string (ej: "Alta (Nivel 4/5)")
+- "magnitudeText": string (ej: "Extrema (Nivel 5/5)", "Alta (Nivel 4/5)")
 - "magnitudeVal": number (0-100)
 - "primaryPair": string (par principal, ej: "EUR/USD")
 - "primaryAction": string (SOLO "BUY" o "SHORT")
-- "expectedCataclysm": string (contexto macro detallado y por qué moverá el mercado)
-- "tradeSetup": string (plan técnico de entrada detallado)`;
+- "expectedCataclysm": string (análisis macro DETALLADO: cadena causal completa, por qué genera tendencia estructural)
+- "tradeSetup": string (plan swing/position: temporalidades D1/H4, zonas de retroceso, estructura del precio, objetivos)
+- "pairsToAnalyze": array de objetos con { "pair": string, "bias": string }`;
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
