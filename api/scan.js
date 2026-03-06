@@ -97,6 +97,9 @@ Responde ÚNICAMENTE con un JSON array válido. Cada objeto:
 
 IMPORTANTE: SIEMPRE encuentra al menos 2-4 catalizadores. El mundo siempre tiene divergencias macro explotables. No devuelvas un array vacío a menos que literalmente no recibas ningún dato.`;
 
+// Vercel: allow up to 60s for this function (Pro plan) or 10s (free)
+export const config = { maxDuration: 60 };
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
