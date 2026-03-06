@@ -407,17 +407,16 @@
 
                     if(allItems.length === 0) throw new Error("No news found from any source");
 
-                    const strip = s => (s || '').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim().slice(0, 200);
-                    const newsText = allItems.slice(0, 10).map(item =>
-                        `[${item.source}] ${item.title}\n${strip(item.description)}`
-                    ).join('\n---\n');
+                    const newsText = allItems.slice(0, 15).map(item =>
+                        `[${item.source}] TÍTULO: ${item.title}\nRESUMEN: ${item.description}`
+                    ).join('\n\n---\n\n');
 
                     // Format economic calendar
                     let calendarText = '';
                     if (Array.isArray(calendarResult) && calendarResult.length > 0) {
                         const highImpact = calendarResult.filter(e => e.impact === 'High' || e.impact === 'Medium');
-                        calendarText = '\n\n=== CALENDARIO ECONÓMICO (esta semana) ===\n' +
-                            highImpact.slice(0, 10).map(e =>
+                        calendarText = '\n\n=== CALENDARIO ECONÓMICO REAL (esta semana) ===\n' +
+                            highImpact.slice(0, 20).map(e =>
                                 `[${e.date}] ${e.country} | ${e.title} | Impacto: ${e.impact} | Previo: ${e.previous || 'N/A'} | Pronóstico: ${e.forecast || 'N/A'} | Real: ${e.actual || 'Pendiente'}`
                             ).join('\n');
                     }
