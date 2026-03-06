@@ -362,7 +362,7 @@
                 btn.classList.add('opacity-80', 'cursor-not-allowed');
 
                 try {
-                    // 1. Obtener noticias de múltiples fuentes RSS
+                    // 1. Obtener noticias, calendario económico y precios en PARALELO
                     const rssProxy = 'https://api.rss2json.com/v1/api.json?rss_url=';
                     const rssFeeds = [
                         { url: rssProxy + encodeURIComponent('https://www.forexlive.com/feed/news'), name: 'ForexLive' },
@@ -374,8 +374,18 @@
                         { url: rssProxy + encodeURIComponent('https://www.cnbc.com/id/100727362/device/rss/rss.html'), name: 'CNBC Economy' },
                     ];
 
-                    const feedResults = await Promise.allSettled(rssFeeds.map(f => fetch(f.url).then(r => r.json())));
+                    const [feedResults, calendarResult, ratesResult] = await Promise.all([
+                        // RSS feeds
+                        Promise.allSettled(rssFeeds.map(f => fetch(f.url).then(r => r.json()))),
+                        // ForexFactory economic calendar (this week's real data)
+                        fetch('https://nfs.faireconomy.media/ff_calendar_thisweek.json')
+                            .then(r => r.json()).catch(() => []),
+                        // Real-time exchange rates vs USD
+                        fetch('https://open.er-api.com/v6/latest/USD')
+                            .then(r => r.json()).catch(() => null)
+                    ]);
 
+                    // Process RSS
                     let allItems = [];
                     feedResults.forEach((result, i) => {
                         if (result.status === 'fulfilled' && result.value.items) {
@@ -387,11 +397,41 @@
 
                     if(allItems.length === 0) throw new Error("No news found from any source");
 
-                    // 2. Preparar el texto para el AI (Top 30 noticias)
-                    const newsText = allItems.slice(0, 30).map(item => `[${item.source}] TÍTULO: ${item.title}\nRESUMEN: ${item.description}`).join('\n\n---\n\n');
+                    // Format RSS news
+                    const newsText = allItems.slice(0, 30).map(item =>
+                        `[${item.source}] TÍTULO: ${item.title}\nRESUMEN: ${item.description}`
+                    ).join('\n\n---\n\n');
 
-                    // 3. Consultar al AI (Modo Escaneo)
-                    const newCatalysts = await callGeminiMarketScanner(newsText);
+                    // Format economic calendar (high-impact events only)
+                    let calendarText = '';
+                    if (Array.isArray(calendarResult) && calendarResult.length > 0) {
+                        const highImpact = calendarResult.filter(e => e.impact === 'High' || e.impact === 'Medium');
+                        calendarText = '\n\n=== CALENDARIO ECONÓMICO REAL (esta semana) ===\n' +
+                            highImpact.slice(0, 20).map(e =>
+                                `[${e.date}] ${e.country} | ${e.title} | Impacto: ${e.impact} | Previo: ${e.previous || 'N/A'} | Pronóstico: ${e.forecast || 'N/A'} | Real: ${e.actual || 'Pendiente'}`
+                            ).join('\n');
+                    }
+
+                    // Format real exchange rates
+                    let ratesText = '';
+                    if (ratesResult && ratesResult.rates) {
+                        const r = ratesResult.rates;
+                        const pairs = {
+                            'EUR/USD': (1/r.EUR).toFixed(4),
+                            'GBP/USD': (1/r.GBP).toFixed(4),
+                            'USD/JPY': r.JPY.toFixed(2),
+                            'USD/CHF': r.CHF.toFixed(4),
+                            'AUD/USD': (1/r.AUD).toFixed(4),
+                            'NZD/USD': (1/r.NZD).toFixed(4),
+                            'USD/CAD': r.CAD.toFixed(4)
+                        };
+                        ratesText = '\n\n=== PRECIOS REALES DE MERCADO (hoy) ===\n' +
+                            Object.entries(pairs).map(([pair, price]) => `${pair}: ${price}`).join('\n');
+                    }
+
+                    // 2. Enviar TODO al AI
+                    const fullContext = newsText + calendarText + ratesText;
+                    const newCatalysts = await callGeminiMarketScanner(fullContext);
 
                     // 4. Actualizar estado
                     if (newCatalysts && newCatalysts.length > 0) {
