@@ -10,11 +10,10 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #fafaf9; /* stone-50 */
-            color: #292524; /* stone-800 */
+            background-color: #fafaf9;
+            color: #292524;
         }
 
-        /* Chart Container Mandatory Styling */
         .chart-container {
             position: relative;
             width: 100%;
@@ -31,7 +30,6 @@
             }
         }
 
-        /* Custom Scrollbar */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #f5f5f4; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 4px; }
@@ -79,7 +77,6 @@
             100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0); }
         }
 
-        /* Spinner para carga */
         .spinner {
             border: 3px solid rgba(255,255,255,0.3);
             border-radius: 50%;
@@ -92,6 +89,56 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+
+        /* Probability bar */
+        .prob-bar-bg {
+            background: #e7e5e4;
+            border-radius: 4px;
+            height: 6px;
+            width: 100%;
+            overflow: hidden;
+        }
+        .prob-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        /* Bank comparison cards */
+        .bank-card {
+            background: white;
+            border: 1px solid #e7e5e4;
+            border-radius: 8px;
+            padding: 12px;
+        }
+        .bank-card-hawkish { border-left: 3px solid #059669; }
+        .bank-card-dovish { border-left: 3px solid #e11d48; }
+        .bank-card-neutral { border-left: 3px solid #d97706; }
+
+        /* Technical grid */
+        .tech-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .tech-item {
+            background: white;
+            border: 1px solid #e7e5e4;
+            border-radius: 6px;
+            padding: 8px 12px;
+        }
+        .tech-item-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #78716c;
+        }
+        .tech-item-value {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1c1917;
         }
     </style>
 </head>
@@ -128,18 +175,17 @@
             </div>
 
             <div id="global-summary-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <!-- Injected via JS -->
             </div>
         </section>
 
-        <!-- ✨ AI News Analyzer Section ✨ -->
+        <!-- AI News Analyzer Section -->
         <section class="bg-gradient-to-r from-stone-900 to-stone-800 rounded-xl p-6 shadow-lg border border-emerald-500/30 relative overflow-hidden mt-6">
             <div class="absolute -right-10 -top-10 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl"></div>
             <div class="relative z-10">
                 <h2 class="text-xl font-bold text-stone-100 flex items-center gap-2 mb-2">
                     <span>✨</span> Analizador de Noticias en Vivo (Powered by IA)
                 </h2>
-                <p class="text-sm text-stone-400 mb-4">Pega una noticia macroeconómica, reporte de inflación o rumor geopolítico reciente. La IA evaluará instantáneamente el impacto en el mercado y creará un plan de acción técnico.</p>
+                <p class="text-sm text-stone-400 mb-4">Pega una noticia macroeconómica, reporte de inflación o rumor geopolítico reciente. La IA evaluará el impacto con análisis de divergencia entre bancos centrales.</p>
 
                 <div class="flex flex-col gap-3">
                     <textarea id="ai-news-input" class="w-full bg-stone-950 border border-stone-700 rounded-lg p-3 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-emerald-500 transition-colors resize-none h-24 custom-scrollbar" placeholder="Ej: La inflación en UK sube inesperadamente al 4%, el mercado laboral sigue caliente y el BoE advierte que mantendrá tasas altas..."></textarea>
@@ -154,24 +200,23 @@
             </div>
         </section>
 
-        <!-- Detailed Catalysts Feed & Action Plans -->
+        <!-- Detailed Catalysts Feed -->
         <section>
             <div class="mb-6 flex flex-col md:flex-row md:justify-between md:items-center border-b border-stone-200 pb-4 gap-4">
                 <div>
                     <h2 class="text-2xl font-bold text-stone-900 tracking-tight flex items-center gap-2">
-                        <span>⚡</span> Alertas de Acción & Cataclismos
+                        <span>⚡</span> Alertas de Divergencia & Catalizadores
                     </h2>
-                    <p class="text-sm text-stone-500 mt-1">Eventos críticos inminentes y directivas de position trading recomendadas.</p>
+                    <p class="text-sm text-stone-500 mt-1">Análisis de divergencia entre bancos centrales con probabilidad y horizonte temporal.</p>
                 </div>
                 <div class="flex gap-2">
                     <button class="filter-btn active px-3 py-1.5 text-xs font-semibold rounded-md bg-stone-800 text-white" data-filter="all">Todos</button>
-                    <button class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-md bg-rose-100 text-rose-800 hover:bg-rose-200 border border-rose-200" data-filter="short">Solo SHORTS</button>
-                    <button class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-md bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border border-emerald-200" data-filter="buy">Solo BUYS</button>
+                    <button class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-md bg-rose-100 text-rose-800 hover:bg-rose-200 border border-rose-200" data-filter="short">Solo BAJISTAS</button>
+                    <button class="filter-btn px-3 py-1.5 text-xs font-semibold rounded-md bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border border-emerald-200" data-filter="buy">Solo ALCISTAS</button>
                 </div>
             </div>
 
             <div id="catalyst-feed" class="space-y-4">
-                <!-- Injected via JS -->
             </div>
         </section>
 
@@ -181,7 +226,6 @@
                 <h2 class="text-xl font-bold text-stone-900">Mapa de Volatilidad Esperada por Par</h2>
                 <p class="text-sm text-stone-500 mt-1">Magnitud agregada de todos los catalizadores activos. Prioriza tu análisis técnico en las barras superiores.</p>
             </div>
-            <!-- MANDATORY CHART CONTAINER -->
             <div class="chart-container">
                 <canvas id="volatilityChart"></canvas>
             </div>
@@ -190,11 +234,25 @@
     </main>
 
     <footer class="bg-stone-900 text-stone-400 py-6 text-center text-sm border-t border-stone-800 mt-auto">
-        <p>FX Catalyst Assistant Pro &copy; 2026. Alertas fundamentales para Position Trading.</p>
+        <p>FX Catalyst Assistant Pro &copy; 2026. Análisis de divergencia macro para Swing Trading.</p>
     </footer>
 
     <script>
-        // --- API INTEGRATION (via serverless backend — no API key needed) ---
+        // === REFERENCIA DE BANCOS CENTRALES ===
+        // IMPORTANTE: Actualizar estos datos cuando cambien las tasas oficiales
+        // Última actualización: Marzo 2026
+        const CENTRAL_BANK_REFERENCE = {
+            'USD': { bank: 'Federal Reserve (Fed)', rate: '4.25-4.50%', bias: 'Data-dependent, pausa en recortes' },
+            'EUR': { bank: 'Banco Central Europeo (BCE)', rate: '2.65%', bias: 'Dovish, ciclo de recortes activo' },
+            'GBP': { bank: 'Bank of England (BoE)', rate: '4.50%', bias: 'Cautelosamente dovish' },
+            'JPY': { bank: 'Bank of Japan (BoJ)', rate: '0.50%', bias: 'Hawkish, normalizando política monetaria' },
+            'AUD': { bank: 'Reserve Bank of Australia (RBA)', rate: '4.10%', bias: 'Inicio de ciclo dovish' },
+            'NZD': { bank: 'Reserve Bank of New Zealand (RBNZ)', rate: '3.75%', bias: 'Agresivamente dovish' },
+            'CAD': { bank: 'Bank of Canada (BoC)', rate: '3.00%', bias: 'Dovish, recortes continuos' },
+            'CHF': { bank: 'Swiss National Bank (SNB)', rate: '0.50%', bias: 'Neutral a dovish' }
+        };
+
+        // --- API INTEGRATION ---
         async function callGeminiAPI(promptText) {
             const response = await fetch('/api/analyze', {
                 method: 'POST',
@@ -215,71 +273,100 @@
             return await response.json();
         }
 
-        // --- DATA STORAGE ---
+        // --- SAMPLE DATA (new schema) ---
         const catalystsData = [
             {
                 id: 1,
-                date: "Inminente (Próximas 48h)",
-                type: "Inflación / Shock de Tasas",
+                date: "Esta semana",
+                type: "Divergencia Monetaria",
                 icon: "🔥",
-                title: "Divergencia Agresiva Fed vs BCE",
+                title: "Divergencia Fed vs BCE: Diferencial de tasas en máximos",
                 currencyAffected: "USD",
-                trendCode: "bullish",
-                magnitudeText: "Extrema (Nivel 5/5)",
-                magnitudeVal: 95,
-                primaryPair: "EUR/USD",
-                primaryAction: "SHORT",
-                expectedCataclysm: "La inflación en EE.UU. no cede, forzando a la Fed a mantener tasas altas mientras Europa entra en recesión y el BCE recorta. Esto provocará una liquidación masiva (sell-off) del Euro frente al Dólar al romperse soportes institucionales importantes.",
-                tradeSetup: "Busca un pull-back hacia la zona de resistencia dinámica o el último alto más bajo (lower high) en D1/H4. Ejecuta un SHORT agresivo con objetivo en los mínimos anuales. El flujo de capital está abandonando Europa.",
-                pairsToAnalyze: [{ pair: "EUR/USD", bias: "Principal" }, { pair: "USD/CHF", bias: "Secundario" }]
-            },
-            {
-                id: 2,
-                date: "Gestándose (Alerta Roja)",
-                type: "Intervención Cambiaria",
-                icon: "🏛️",
-                title: "BoJ al Límite: Riesgo de Flash Crash",
-                currencyAffected: "JPY",
-                trendCode: "warning",
-                magnitudeText: "Muy Alta (Nivel 4.5/5)",
-                magnitudeVal: 90,
-                primaryPair: "GBP/JPY",
-                primaryAction: "SHORT",
-                expectedCataclysm: "El Yen está en mínimos históricos. El Banco de Japón (BoJ) está acorralado. Se espera una intervención sorpresa en el mercado de divisas (venta masiva de reservas en USD/GBP) que causará un 'Flash Crash' barriendo de 300 a 500 pips a la baja en minutos, liquidando a los compradores tardíos.",
-                tradeSetup: "Busca patrones de agotamiento alcista (ej. Doji o Envolventes bajistas) en temporalidades altas (D1). Coloca órdenes SELL STOP por debajo de soportes menores para atrapar la caída libre. NO COMPRES, el riesgo de quedar atrapado en la intervención es altísimo.",
-                pairsToAnalyze: [{ pair: "GBP/JPY", bias: "Alta volatilidad" }, { pair: "USD/JPY", bias: "Epicentro" }]
-            },
-            {
-                id: 3,
-                date: "En Desarrollo",
-                type: "Colapso Commodities",
-                icon: "📉",
-                title: "Desplome de Términos de Intercambio Oceánicos",
-                currencyAffected: "AUD",
                 trendCode: "bearish",
                 magnitudeText: "Alta (Nivel 4/5)",
                 magnitudeVal: 85,
-                primaryPair: "AUD/USD",
+                primaryPair: "EUR/USD",
                 primaryAction: "SHORT",
-                expectedCataclysm: "Crisis inmobiliaria en China provoca un colapso en los precios del mineral de hierro (principal exportación de Australia). Esto destruye el valor intrínseco del Dólar Australiano. Se espera una caída en picada prolongada (tendencia bajista estructural).",
-                tradeSetup: "Estructura claramente bajista. Cualquier rebote al alza (rally de alivio) es una oportunidad para entrar en SHORT. Busca confluencias de Fibonacci en los retrocesos de la onda impulsiva bajista.",
-                pairsToAnalyze: [{ pair: "AUD/USD", bias: "Principal" }, { pair: "AUD/NZD", bias: "Secundario" }, { pair: "EUR/AUD", bias: "Inverso (BUY)" }]
+                directionalBias: "BAJISTA",
+                probability: 72,
+                timeHorizon: "Hasta reunión BCE 17 de abril",
+                fundamentalAnalysis: {
+                    baseCurrencyBank: "Fed (USD): Tasa 4.25-4.50%. Sesgo data-dependent. La Fed mantiene pausa mientras evalúa el impacto de la inflación persistente. El mercado descuenta solo 1-2 recortes en 2026.",
+                    quoteCurrencyBank: "BCE (EUR): Tasa 2.65%. Sesgo dovish. El BCE continúa su ciclo de recortes ante debilidad en manufactura alemana y crecimiento anémico en la eurozona.",
+                    divergenceSummary: "Divergencia clara de ~175pb a favor del USD. La Fed mantiene tasas mientras el BCE recorta. El diferencial de tasas impulsa flujo de carry trade hacia USD, presionando EUR/USD a la baja. La eurozona muestra debilidad estructural mientras EE.UU. mantiene resiliencia relativa.",
+                    invalidators: ["CPI de EE.UU. cayendo por debajo de 2.5% — activaría expectativas de recortes Fed", "PMI eurozona sorprende al alza >52 — señalaría recuperación", "Fed señala recortes anticipados en comunicado FOMC"]
+                },
+                technicalSetup: {
+                    currentPrice: "1.0450",
+                    entry: "1.0480-1.0520 (retroceso a resistencia)",
+                    stopLoss: "1.0580 (por encima de resistencia semanal)",
+                    takeProfit: "1.0320 (soporte institucional)",
+                    riskRewardRatio: "1:2.3",
+                    timeframes: "D1 y H4"
+                },
+                pairsToAnalyze: [{ pair: "EUR/USD", bias: "Bajista — divergencia Fed/BCE" }, { pair: "USD/CHF", bias: "Alcista — flujo refugio + carry" }]
             },
             {
-                id: 4,
-                date: "Gestándose",
-                type: "Shock Geopolítico / Refugio",
-                icon: "🛢️",
-                title: "Crisis en Rutas Marítimas y Shock Energético",
-                currencyAffected: "CAD",
-                trendCode: "bullish",
+                id: 2,
+                date: "Próximas 2-3 semanas",
+                type: "Intervención Cambiaria",
+                icon: "🏛️",
+                title: "BoJ normalizando vs BoE recortando: Presión en GBP/JPY",
+                currencyAffected: "JPY",
+                trendCode: "warning",
                 magnitudeText: "Alta (Nivel 4/5)",
-                magnitudeVal: 80,
-                primaryPair: "CAD/JPY",
-                primaryAction: "BUY",
-                expectedCataclysm: "Escalada de tensiones bloquea rutas clave, disparando el precio del crudo +15% repentinamente. El Dólar Canadiense (petro-divisa) sufrirá un shock de demanda brutal, apreciándose violentamente contra divisas importadoras de energía.",
-                tradeSetup: "El par cruzado ideal es CAD/JPY. Busca confirmación de ruptura alcista en consolidaciones de temporalidad H4. Entra en BUY (Largo) cabalgando la tendencia del petróleo.",
-                pairsToAnalyze: [{ pair: "CAD/JPY", bias: "Principal" }, { pair: "USD/CAD", bias: "Secundario (SHORT)" }]
+                magnitudeVal: 82,
+                primaryPair: "GBP/JPY",
+                primaryAction: "SHORT",
+                directionalBias: "BAJISTA",
+                probability: 68,
+                timeHorizon: "Hasta reunión BoJ 13 de marzo",
+                fundamentalAnalysis: {
+                    baseCurrencyBank: "BoE (GBP): Tasa 4.50%. Sesgo cautelosamente dovish. El BoE inició recortes y el mercado espera más. La inflación UK baja lentamente pero el crecimiento se estanca.",
+                    quoteCurrencyBank: "BoJ (JPY): Tasa 0.50%. Sesgo hawkish — único banco central G8 subiendo tasas. La normalización continúa con expectativas de subida a 0.75% en H1 2026.",
+                    divergenceSummary: "Convergencia de tasas: BoE bajando mientras BoJ sube. El diferencial GBP-JPY se comprime, eliminando el atractivo de carry de GBP/JPY. Además, riesgo de intervención verbal del MOF si JPY se debilita más allá de 155 vs USD.",
+                    invalidators: ["BoJ pausa subidas por debilidad económica japonesa", "Inflación UK repunta forzando al BoE a pausar recortes", "Risk-on extremo que favorezca carry trades"]
+                },
+                technicalSetup: {
+                    currentPrice: "191.50",
+                    entry: "192.00-193.00 (rally hacia resistencia)",
+                    stopLoss: "194.50 (por encima de alto reciente)",
+                    takeProfit: "187.00 (soporte estructural D1)",
+                    riskRewardRatio: "1:2.5",
+                    timeframes: "D1 y H4"
+                },
+                pairsToAnalyze: [{ pair: "GBP/JPY", bias: "Bajista — convergencia BoE/BoJ" }, { pair: "USD/JPY", bias: "Bajista moderado — BoJ hawkish" }]
+            },
+            {
+                id: 3,
+                date: "Esta semana",
+                type: "Colapso Commodities",
+                icon: "📉",
+                title: "Debilidad China presiona AUD mientras Fed mantiene",
+                currencyAffected: "AUD",
+                trendCode: "bearish",
+                magnitudeText: "Moderada (Nivel 3/5)",
+                magnitudeVal: 70,
+                primaryPair: "AUD/USD",
+                primaryAction: "SHORT",
+                directionalBias: "BAJISTA",
+                probability: 65,
+                timeHorizon: "Hasta datos PMI China fin de mes",
+                fundamentalAnalysis: {
+                    baseCurrencyBank: "RBA (AUD): Tasa 4.10%. Sesgo: inicio ciclo dovish. La RBA acaba de recortar por primera vez y el mercado espera más recortes ante debilidad en exportaciones a China.",
+                    quoteCurrencyBank: "Fed (USD): Tasa 4.25-4.50%. Sesgo data-dependent. La Fed mantiene tasas más altas, atrayendo flujo de carry vs AUD.",
+                    divergenceSummary: "Diferencial mínimo pero la dirección diverge: RBA bajando, Fed estable. Sumado a la correlación AUD con mineral de hierro y la debilidad del sector inmobiliario chino, el AUD enfrenta doble presión (macro + commodities).",
+                    invalidators: ["Estímulo fiscal masivo de China — rebote en commodities", "Dato de empleo AU sorprende al alza", "Fed señala recortes inminentes"]
+                },
+                technicalSetup: {
+                    currentPrice: "0.6280",
+                    entry: "0.6310-0.6340 (retroceso a media móvil D1)",
+                    stopLoss: "0.6390 (por encima de resistencia)",
+                    takeProfit: "0.6150 (soporte Q4)",
+                    riskRewardRatio: "1:2.0",
+                    timeframes: "D1 y H4"
+                },
+                pairsToAnalyze: [{ pair: "AUD/USD", bias: "Bajista — RBA dovish + China débil" }, { pair: "AUD/NZD", bias: "Neutral — ambos bancos recortando" }]
             }
         ];
 
@@ -289,6 +376,27 @@
             currentFilter: 'all',
             chartInstance: null
         };
+
+        // --- HELPER: Get probability color ---
+        function getProbColor(prob, isBullish) {
+            if (isBullish) {
+                if (prob >= 75) return { bg: 'bg-emerald-600', text: 'text-emerald-600', light: 'bg-emerald-50', fill: '#059669' };
+                if (prob >= 60) return { bg: 'bg-emerald-500', text: 'text-emerald-500', light: 'bg-emerald-50', fill: '#10b981' };
+                return { bg: 'bg-amber-500', text: 'text-amber-500', light: 'bg-amber-50', fill: '#f59e0b' };
+            } else {
+                if (prob >= 75) return { bg: 'bg-rose-600', text: 'text-rose-600', light: 'bg-rose-50', fill: '#e11d48' };
+                if (prob >= 60) return { bg: 'bg-rose-500', text: 'text-rose-500', light: 'bg-rose-50', fill: '#f43f5e' };
+                return { bg: 'bg-amber-500', text: 'text-amber-500', light: 'bg-amber-50', fill: '#f59e0b' };
+            }
+        }
+
+        // --- HELPER: Detect bank bias from text ---
+        function detectBankBias(bankText) {
+            const lower = (bankText || '').toLowerCase();
+            if (lower.includes('hawkish') || lower.includes('subiendo') || lower.includes('subida')) return 'hawkish';
+            if (lower.includes('dovish') || lower.includes('recort') || lower.includes('bajando')) return 'dovish';
+            return 'neutral';
+        }
 
         // --- CORE LOGIC & RENDERING ---
         const app = {
@@ -308,39 +416,34 @@
                 if (!input) return;
 
                 const originalText = btn.innerHTML;
-                btn.innerHTML = '<span class="spinner"></span> Consultando Oráculo IA...';
+                btn.innerHTML = '<span class="spinner"></span> Analizando divergencia...';
                 btn.disabled = true;
                 btn.classList.add('opacity-50', 'cursor-not-allowed');
                 errorMsg.classList.remove('opacity-100');
 
                 try {
-                    const result = await callGeminiAPI(`Analiza esta noticia y genera una alerta de trading urgente: ${input}`);
+                    // Include central bank context with the news
+                    const cbContext = '\n\n=== REFERENCIA BANCOS CENTRALES ===\n' +
+                        Object.entries(CENTRAL_BANK_REFERENCE).map(([cur, info]) =>
+                            `${cur}: ${info.bank} | Tasa: ${info.rate} | Sesgo: ${info.bias}`
+                        ).join('\n');
+
+                    const result = await callGeminiAPI(`Analiza esta noticia con enfoque de divergencia entre bancos centrales:\n\n${input}${cbContext}`);
                     if (result) {
                         result.id = Date.now();
-                        if (!result.date) result.date = "¡NUEVO! Generado por IA";
+                        if (!result.date) result.date = "Generado por IA";
+                        if (!result.probability) result.probability = 60;
+                        if (!result.directionalBias) result.directionalBias = result.primaryAction === 'BUY' ? 'ALCISTA' : 'BAJISTA';
+                        if (!result.timeHorizon) result.timeHorizon = "Evaluar según contexto";
                         result.pairsToAnalyze = result.pairsToAnalyze || [{ pair: result.primaryPair, bias: "Objetivo Principal" }];
 
                         appState.catalysts.unshift(result);
                         appState.currentFilter = 'all';
-
-                        document.querySelectorAll('.filter-btn').forEach(b => {
-                            b.classList.remove('active', 'bg-stone-800', 'text-white', 'bg-rose-600', 'bg-emerald-600');
-                            if(b.getAttribute('data-filter') === 'all') {
-                                b.classList.add('active', 'bg-stone-800', 'text-white');
-                            } else {
-                                b.classList.add('bg-stone-100', 'text-stone-600');
-                                const f = b.getAttribute('data-filter');
-                                if(f === 'short') { b.classList.add('bg-rose-50', 'text-rose-600', 'border', 'border-rose-100'); b.classList.remove('bg-stone-100', 'text-stone-600'); }
-                                if(f === 'buy') { b.classList.add('bg-emerald-50', 'text-emerald-600', 'border', 'border-emerald-100'); b.classList.remove('bg-stone-100', 'text-stone-600'); }
-                            }
-                        });
-
+                        this._resetFilterButtons();
                         this.renderGlobalSummary();
                         this.renderFeed();
-
                         if (appState.chartInstance) appState.chartInstance.destroy();
                         this.initChart();
-
                         inputEl.value = '';
                     } else {
                         errorMsg.classList.add('opacity-100');
@@ -362,7 +465,6 @@
                 btn.classList.add('opacity-80', 'cursor-not-allowed');
 
                 try {
-                    // 1. Obtener noticias, calendario económico y precios en PARALELO
                     const rssProxy = 'https://api.rss2json.com/v1/api.json?rss_url=';
                     const rssFeeds = [
                         { url: rssProxy + encodeURIComponent('https://www.forexlive.com/feed/news'), name: 'ForexLive' },
@@ -375,12 +477,9 @@
                     ];
 
                     const [feedResults, calendarResult, ratesResult] = await Promise.all([
-                        // RSS feeds
                         Promise.allSettled(rssFeeds.map(f => fetch(f.url).then(r => r.json()))),
-                        // ForexFactory economic calendar (this week's real data)
                         fetch('https://nfs.faireconomy.media/ff_calendar_thisweek.json')
                             .then(r => r.json()).catch(() => []),
-                        // Real-time exchange rates vs USD
                         fetch('https://open.er-api.com/v6/latest/USD')
                             .then(r => r.json()).catch(() => null)
                     ]);
@@ -397,12 +496,11 @@
 
                     if(allItems.length === 0) throw new Error("No news found from any source");
 
-                    // Format RSS news
                     const newsText = allItems.slice(0, 30).map(item =>
                         `[${item.source}] TÍTULO: ${item.title}\nRESUMEN: ${item.description}`
                     ).join('\n\n---\n\n');
 
-                    // Format economic calendar (high-impact events only)
+                    // Format economic calendar
                     let calendarText = '';
                     if (Array.isArray(calendarResult) && calendarResult.length > 0) {
                         const highImpact = calendarResult.filter(e => e.impact === 'High' || e.impact === 'Medium');
@@ -429,21 +527,28 @@
                             Object.entries(pairs).map(([pair, price]) => `${pair}: ${price}`).join('\n');
                     }
 
-                    // 2. Enviar TODO al AI
-                    const fullContext = newsText + calendarText + ratesText;
+                    // Format central bank reference
+                    let cbText = '\n\n=== REFERENCIA DE BANCOS CENTRALES (tasas actuales y sesgo de política monetaria) ===\n' +
+                        Object.entries(CENTRAL_BANK_REFERENCE).map(([cur, info]) =>
+                            `${cur}: ${info.bank} | Tasa actual: ${info.rate} | Sesgo: ${info.bias}`
+                        ).join('\n');
+
+                    const fullContext = newsText + calendarText + ratesText + cbText;
                     const newCatalysts = await callGeminiMarketScanner(fullContext);
 
-                    // 4. Actualizar estado
                     if (newCatalysts && newCatalysts.length > 0) {
                         newCatalysts.forEach((cat, index) => {
                             cat.id = Date.now() + index;
                             if (!cat.date) cat.date = "En Desarrollo";
+                            if (!cat.probability) cat.probability = 60;
+                            if (!cat.directionalBias) cat.directionalBias = cat.primaryAction === 'BUY' ? 'ALCISTA' : 'BAJISTA';
+                            if (!cat.timeHorizon) cat.timeHorizon = "Evaluar según contexto";
                             if (!cat.pairsToAnalyze || !Array.isArray(cat.pairsToAnalyze)) {
                                 cat.pairsToAnalyze = [{ pair: cat.primaryPair, bias: "Objetivo Principal" }];
                             }
                         });
 
-                        // Safety net: eliminar pares con señales contradictorias
+                        // Safety net: remove conflicting pairs
                         const pairDirections = {};
                         newCatalysts.forEach(cat => {
                             const pair = cat.primaryPair;
@@ -454,20 +559,8 @@
                         const cleanCatalysts = newCatalysts.filter(cat => !conflictingPairs.includes(cat.primaryPair));
 
                         appState.catalysts = cleanCatalysts.length > 0 ? cleanCatalysts : newCatalysts.slice(0, 1);
-
                         appState.currentFilter = 'all';
-                        document.querySelectorAll('.filter-btn').forEach(b => {
-                            b.classList.remove('active', 'bg-stone-800', 'text-white', 'bg-rose-600', 'bg-emerald-600');
-                            if(b.getAttribute('data-filter') === 'all') {
-                                b.classList.add('active', 'bg-stone-800', 'text-white');
-                            } else {
-                                b.classList.add('bg-stone-100', 'text-stone-600');
-                                const f = b.getAttribute('data-filter');
-                                if(f === 'short') { b.classList.add('bg-rose-50', 'text-rose-600', 'border', 'border-rose-100'); b.classList.remove('bg-stone-100', 'text-stone-600'); }
-                                if(f === 'buy') { b.classList.add('bg-emerald-50', 'text-emerald-600', 'border', 'border-emerald-100'); b.classList.remove('bg-stone-100', 'text-stone-600'); }
-                            }
-                        });
-
+                        this._resetFilterButtons();
                         this.renderGlobalSummary();
                         this.renderFeed();
                         if (appState.chartInstance) appState.chartInstance.destroy();
@@ -488,6 +581,19 @@
                     btn.disabled = false;
                     btn.classList.remove('opacity-80', 'cursor-not-allowed');
                 }
+            },
+
+            _resetFilterButtons: function() {
+                document.querySelectorAll('.filter-btn').forEach(b => {
+                    b.classList.remove('active', 'bg-stone-800', 'text-white', 'bg-rose-600', 'bg-emerald-600');
+                    if(b.getAttribute('data-filter') === 'all') {
+                        b.classList.add('active', 'bg-stone-800', 'text-white');
+                    } else {
+                        const f = b.getAttribute('data-filter');
+                        if(f === 'short') { b.className = 'filter-btn px-3 py-1.5 text-xs font-semibold rounded-md bg-rose-100 text-rose-800 hover:bg-rose-200 border border-rose-200'; }
+                        if(f === 'buy') { b.className = 'filter-btn px-3 py-1.5 text-xs font-semibold rounded-md bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border border-emerald-200'; }
+                    }
+                });
             },
 
             getStyleClasses: function(trendCode) {
@@ -532,7 +638,7 @@
                         `;
                     }
 
-                    const card = `
+                    container.innerHTML += `
                         <div class="${wrapperClasses}">
                             <div class="relative z-10">
                                 <div class="text-lg font-bold text-stone-800">${cur}</div>
@@ -540,7 +646,6 @@
                             ${statusHtml}
                         </div>
                     `;
-                    container.innerHTML += card;
                 });
             },
 
@@ -561,14 +666,150 @@
                 }
 
                 filteredData.forEach(cat => {
-                    const isShort = cat.primaryAction === 'SHORT';
-                    const actionColorClass = isShort ? 'bg-rose-600' : 'bg-emerald-600';
-                    const actionBgLightClass = isShort ? 'bg-rose-50' : 'bg-emerald-50';
-                    const actionBorderClass = isShort ? 'border-rose-200' : 'border-emerald-200';
-                    const actionTextClass = isShort ? 'text-rose-700' : 'text-emerald-700';
-                    const actionIconText = isShort ? '📉 VENDER (SHORT)' : '📈 COMPRAR (BUY)';
-                    const cardBorderHover = isShort ? 'hover:border-rose-400' : 'hover:border-emerald-400';
-                    const pulseClass = isShort ? 'action-pulse-red' : 'action-pulse';
+                    const isBullish = cat.directionalBias === 'ALCISTA' || cat.primaryAction === 'BUY';
+                    const prob = cat.probability || 60;
+                    const probColor = getProbColor(prob, isBullish);
+                    const biasText = isBullish ? 'ALCISTA' : 'BAJISTA';
+                    const actionText = isBullish ? 'BUY' : 'SHORT';
+                    const pulseClass = isBullish ? 'action-pulse' : 'action-pulse-red';
+                    const cardBorderHover = isBullish ? 'hover:border-emerald-400' : 'hover:border-rose-400';
+                    const timeHorizon = cat.timeHorizon || cat.date || '';
+
+                    // Fundamental analysis (with fallback for old format)
+                    const fa = cat.fundamentalAnalysis || {};
+                    const ts = cat.technicalSetup || {};
+                    const hasNewFormat = fa.baseCurrencyBank || fa.quoteCurrencyBank;
+
+                    // Detect bank biases for coloring
+                    const baseBias = detectBankBias(fa.baseCurrencyBank);
+                    const quoteBias = detectBankBias(fa.quoteCurrencyBank);
+
+                    // Build expanded content
+                    let fundamentalHtml = '';
+                    if (hasNewFormat) {
+                        const invalidatorsHtml = (fa.invalidators || []).map(inv =>
+                            `<li class="text-xs text-stone-600 leading-relaxed">${inv}</li>`
+                        ).join('');
+
+                        fundamentalHtml = `
+                            <div class="p-6 bg-stone-50 border-r border-stone-100">
+                                <h4 class="text-sm font-black text-stone-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                    📊 Análisis Fundamental — Divergencia
+                                </h4>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                                    <div class="bank-card bank-card-${baseBias}">
+                                        <div class="text-xs font-bold uppercase tracking-wider ${baseBias === 'hawkish' ? 'text-emerald-700' : baseBias === 'dovish' ? 'text-rose-700' : 'text-amber-700'} mb-1">
+                                            ${baseBias === 'hawkish' ? '🦅 Hawkish' : baseBias === 'dovish' ? '🕊️ Dovish' : '⚖️ Neutral'}
+                                        </div>
+                                        <p class="text-sm text-stone-700 leading-relaxed">${fa.baseCurrencyBank || 'N/A'}</p>
+                                    </div>
+                                    <div class="bank-card bank-card-${quoteBias}">
+                                        <div class="text-xs font-bold uppercase tracking-wider ${quoteBias === 'hawkish' ? 'text-emerald-700' : quoteBias === 'dovish' ? 'text-rose-700' : 'text-amber-700'} mb-1">
+                                            ${quoteBias === 'hawkish' ? '🦅 Hawkish' : quoteBias === 'dovish' ? '🕊️ Dovish' : '⚖️ Neutral'}
+                                        </div>
+                                        <p class="text-sm text-stone-700 leading-relaxed">${fa.quoteCurrencyBank || 'N/A'}</p>
+                                    </div>
+                                </div>
+
+                                <div class="bg-white border border-stone-200 rounded-lg p-3 mb-4">
+                                    <div class="text-xs font-bold uppercase tracking-wider text-stone-500 mb-1">Divergencia</div>
+                                    <p class="text-sm text-stone-800 leading-relaxed font-medium">${fa.divergenceSummary || 'N/A'}</p>
+                                </div>
+
+                                ${invalidatorsHtml ? `
+                                <div class="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                                    <div class="text-xs font-bold uppercase tracking-wider text-amber-700 mb-2">⚠ Podría invalidarse si:</div>
+                                    <ul class="space-y-1 list-disc list-inside">${invalidatorsHtml}</ul>
+                                </div>` : ''}
+                            </div>
+                        `;
+                    } else {
+                        // Fallback for old format (expectedCataclysm)
+                        fundamentalHtml = `
+                            <div class="p-6 bg-stone-50 border-r border-stone-100">
+                                <h4 class="text-sm font-black text-stone-900 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                    🌪️ Análisis Fundamental
+                                </h4>
+                                <p class="text-sm text-stone-700 leading-relaxed font-medium">${cat.expectedCataclysm || 'N/A'}</p>
+                            </div>
+                        `;
+                    }
+
+                    let technicalHtml = '';
+                    if (ts.currentPrice || ts.entry) {
+                        const actionBgLight = isBullish ? 'bg-emerald-50' : 'bg-rose-50';
+                        const actionTextColor = isBullish ? 'text-emerald-700' : 'text-rose-700';
+                        const actionBorderColor = isBullish ? 'border-emerald-200' : 'border-rose-200';
+
+                        technicalHtml = `
+                            <div class="p-6 ${actionBgLight}">
+                                <h4 class="text-sm font-black ${actionTextColor} uppercase tracking-wider mb-4 flex items-center gap-2">
+                                    🎯 Setup Técnico
+                                </h4>
+
+                                <div class="bg-white border ${actionBorderColor} rounded-lg p-4 shadow-sm mb-4">
+                                    <div class="text-lg font-black ${actionTextColor} mb-3">${cat.primaryPair} — ${prob}% ${biasText}</div>
+                                    <div class="tech-grid">
+                                        <div class="tech-item">
+                                            <div class="tech-item-label">Precio Actual</div>
+                                            <div class="tech-item-value">${ts.currentPrice || 'Verificar'}</div>
+                                        </div>
+                                        <div class="tech-item">
+                                            <div class="tech-item-label">Zona de Entrada</div>
+                                            <div class="tech-item-value">${ts.entry || 'Verificar en plataforma'}</div>
+                                        </div>
+                                        <div class="tech-item">
+                                            <div class="tech-item-label">Stop Loss</div>
+                                            <div class="tech-item-value text-rose-600">${ts.stopLoss || 'Verificar'}</div>
+                                        </div>
+                                        <div class="tech-item">
+                                            <div class="tech-item-label">Take Profit</div>
+                                            <div class="tech-item-value text-emerald-600">${ts.takeProfit || 'Verificar'}</div>
+                                        </div>
+                                        <div class="tech-item">
+                                            <div class="tech-item-label">Riesgo/Beneficio</div>
+                                            <div class="tech-item-value">${ts.riskRewardRatio || 'N/A'}</div>
+                                        </div>
+                                        <div class="tech-item">
+                                            <div class="tech-item-label">Temporalidad</div>
+                                            <div class="tech-item-value">${ts.timeframes || 'D1 / H4'}</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <span class="text-xs font-bold text-stone-500 uppercase">Pares afectados:</span>
+                                    <div class="flex flex-wrap gap-2 mt-2">
+                                        ${(cat.pairsToAnalyze || []).map(p => `<span class="text-xs font-semibold px-2 py-1 bg-white border border-stone-200 rounded text-stone-700 shadow-sm">${p.pair} <span class="text-stone-400">— ${p.bias}</span></span>`).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        // Fallback for old format (tradeSetup string)
+                        const actionBgLight = isBullish ? 'bg-emerald-50' : 'bg-rose-50';
+                        const actionTextColor = isBullish ? 'text-emerald-700' : 'text-rose-700';
+                        const actionBorderColor = isBullish ? 'border-emerald-200' : 'border-rose-200';
+
+                        technicalHtml = `
+                            <div class="p-6 ${actionBgLight}">
+                                <h4 class="text-sm font-black ${actionTextColor} uppercase tracking-wider mb-3 flex items-center gap-2">
+                                    🎯 Plan de Acción Técnico
+                                </h4>
+                                <div class="bg-white border ${actionBorderColor} rounded-lg p-4 shadow-sm mb-3">
+                                    <div class="text-lg font-black ${actionTextColor} mb-2">${cat.primaryPair} ➔ ${cat.primaryAction}</div>
+                                    <p class="text-sm text-stone-800 leading-relaxed">${cat.tradeSetup || 'N/A'}</p>
+                                </div>
+                                <div class="mt-4">
+                                    <span class="text-xs font-bold text-stone-500 uppercase">Pares afectados:</span>
+                                    <div class="flex flex-wrap gap-2 mt-2">
+                                        ${(cat.pairsToAnalyze || []).map(p => `<span class="text-xs font-semibold px-2 py-1 bg-white border border-stone-200 rounded text-stone-700 shadow-sm">${p.pair}</span>`).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
 
                     const html = `
                         <div class="catalyst-card bg-white border border-stone-200 rounded-xl shadow-sm overflow-hidden ${cardBorderHover} relative">
@@ -581,17 +822,26 @@
                                         <div class="flex flex-wrap items-center gap-2 mb-1">
                                             <span class="text-xs font-bold px-2 py-0.5 rounded bg-stone-800 text-stone-100 uppercase tracking-wider">${cat.currencyAffected}</span>
                                             <span class="text-xs font-medium text-stone-500">${cat.type}</span>
-                                            <span class="text-xs font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-100">${cat.date}</span>
+                                            <span class="text-xs font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">⏱ ${timeHorizon}</span>
                                         </div>
                                         <h3 class="text-lg font-extrabold text-stone-900 leading-snug">${cat.title}</h3>
-                                        <div class="text-sm text-stone-500 mt-1">Impacto Esperado: <strong>${cat.magnitudeText}</strong></div>
+                                        <div class="flex items-center gap-3 mt-2">
+                                            <span class="text-xs text-stone-500">Impacto: <strong>${cat.magnitudeText}</strong></span>
+                                            <div class="flex items-center gap-1.5">
+                                                <div class="prob-bar-bg w-20">
+                                                    <div class="prob-bar-fill" style="width: ${prob}%; background-color: ${probColor.fill};"></div>
+                                                </div>
+                                                <span class="text-xs font-bold ${probColor.text}">${prob}%</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
                                 <div class="flex-shrink-0 w-full md:w-auto mt-4 md:mt-0 flex md:flex-col items-center md:items-end gap-2 md:gap-1">
-                                    <span class="text-xs font-bold text-stone-400 uppercase tracking-widest hidden md:block">Directiva</span>
-                                    <div class="${actionColorClass} text-white px-4 py-2 rounded-lg font-black text-sm shadow-md flex items-center gap-2 w-full md:w-auto justify-center ${pulseClass}">
-                                        ${actionIconText} ${cat.primaryPair}
+                                    <span class="text-xs font-bold text-stone-400 uppercase tracking-widest hidden md:block">Sesgo</span>
+                                    <div class="${probColor.bg} text-white px-4 py-2 rounded-lg font-black text-sm shadow-md flex flex-col items-center gap-0.5 w-full md:w-auto justify-center ${pulseClass}">
+                                        <span>${prob}% ${biasText}</span>
+                                        <span class="text-xs font-semibold opacity-90">${actionText} ${cat.primaryPair}</span>
                                     </div>
                                     <div class="text-stone-400 font-bold px-2 hidden sm:block">
                                         <span id="icon-${cat.id}" class="text-xl">▼</span>
@@ -601,33 +851,8 @@
 
                             <div id="details-${cat.id}" class="details-content bg-white border-t border-stone-100">
                                 <div class="p-0 grid grid-cols-1 md:grid-cols-2">
-
-                                    <div class="p-6 bg-stone-50 border-r border-stone-100">
-                                        <h4 class="text-sm font-black text-stone-900 uppercase tracking-wider mb-3 flex items-center gap-2">
-                                            <span>🌪️</span> El Cataclismo Esperado
-                                        </h4>
-                                        <p class="text-sm text-stone-700 leading-relaxed font-medium">
-                                            ${cat.expectedCataclysm}
-                                        </p>
-                                    </div>
-
-                                    <div class="p-6 ${actionBgLightClass}">
-                                        <h4 class="text-sm font-black ${actionTextClass} uppercase tracking-wider mb-3 flex items-center gap-2">
-                                            <span>🎯</span> Plan de Acción Técnico
-                                        </h4>
-                                        <div class="bg-white border ${actionBorderClass} rounded-lg p-4 shadow-sm mb-3">
-                                            <div class="text-lg font-black ${actionTextClass} mb-2">${cat.primaryPair} ➔ ${cat.primaryAction}</div>
-                                            <p class="text-sm text-stone-800 leading-relaxed">${cat.tradeSetup}</p>
-                                        </div>
-
-                                        <div class="mt-4">
-                                            <span class="text-xs font-bold text-stone-500 uppercase">Todos los pares afectados:</span>
-                                            <div class="flex flex-wrap gap-2 mt-2">
-                                                ${cat.pairsToAnalyze.map(p => `<span class="text-xs font-semibold px-2 py-1 bg-white border border-stone-200 rounded text-stone-700 shadow-sm">${p.pair}</span>`).join('')}
-                                            </div>
-                                        </div>
-                                    </div>
-
+                                    ${fundamentalHtml}
+                                    ${technicalHtml}
                                 </div>
                             </div>
                         </div>
@@ -646,7 +871,8 @@
                 } else {
                     document.querySelectorAll('.details-content.active').forEach(node => {
                         node.classList.remove('active');
-                        const otherIcon = document.getElementById(`icon-${node.id.split('-')[1]}`);
+                        const nodeId = node.id.replace('details-', '');
+                        const otherIcon = document.getElementById(`icon-${nodeId}`);
                         if(otherIcon) otherIcon.innerText = '▼';
                     });
 
@@ -660,7 +886,7 @@
 
                 const pairImpacts = {};
                 appState.catalysts.forEach(cat => {
-                    cat.pairsToAnalyze.forEach(p => {
+                    (cat.pairsToAnalyze || []).forEach(p => {
                         if (!pairImpacts[p.pair]) pairImpacts[p.pair] = 0;
                         pairImpacts[p.pair] += cat.magnitudeVal;
                     });
@@ -683,7 +909,7 @@
                         datasets: [{
                             label: 'Gravedad del Catalizador',
                             data: data,
-                            backgroundColor: '#292524', // stone-800
+                            backgroundColor: '#292524',
                             borderRadius: 4,
                             barThickness: 'flex',
                             maxBarThickness: 40
