@@ -58,7 +58,7 @@ Responde ÚNICAMENTE con un JSON array válido. Cada objeto debe tener exactamen
 - "tradeSetup": string (plan técnico referenciando los PRECIOS REALES proporcionados, zonas de entrada coherentes, temporalidades D1/H4, gestión de riesgo)
 - "pairsToAnalyze": array de { "pair": string, "bias": string }
 
-Si no hay catalizadores claros con datos verificables, responde: []`;
+IMPORTANTE: El mundo SIEMPRE tiene eventos macro relevantes — guerras activas, decisiones de bancos centrales, datos económicos, tensiones geopolíticas. SIEMPRE debes encontrar al menos 2-4 catalizadores de los datos proporcionados. Analiza las noticias, el calendario económico y los precios, y extrae las oportunidades más claras. No devuelvas un array vacío a menos que literalmente no recibas ningún dato.`;
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -89,7 +89,7 @@ export default async function handler(req, res) {
           { role: "user", content: `DATOS DEL MERCADO HOY:\n\n${newsTextBatch}` },
         ],
         response_format: { type: "json_object" },
-        temperature: 0.2,
+        temperature: 0.3,
       }),
     });
 
