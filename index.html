@@ -271,7 +271,10 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ newsTextBatch })
             });
-            if (!response.ok) throw new Error("Error en el escaneo del mercado");
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({ error: response.statusText }));
+                throw new Error(`Scan API error ${response.status}: ${errData.error || response.statusText}`);
+            }
             return await response.json();
         }
 
@@ -404,7 +407,7 @@
 
                     if(allItems.length === 0) throw new Error("No news found from any source");
 
-                    const newsText = allItems.slice(0, 30).map(item =>
+                    const newsText = allItems.slice(0, 15).map(item =>
                         `[${item.source}] TÍTULO: ${item.title}\nRESUMEN: ${item.description}`
                     ).join('\n\n---\n\n');
 
@@ -483,8 +486,8 @@
                     }
 
                 } catch(e) {
-                    console.error(e);
-                    alert("Hubo un error al descargar datos en vivo. Por favor, intenta en un minuto.");
+                    console.error('Scan error:', e);
+                    alert(`Error: ${e.message}\n\nRevisa la consola del navegador (F12) para más detalles.`);
                 } finally {
                     btn.innerHTML = originalText;
                     btn.disabled = false;
