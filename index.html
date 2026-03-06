@@ -241,15 +241,17 @@
         // === REFERENCIA DE BANCOS CENTRALES ===
         // IMPORTANTE: Actualizar estos datos cuando cambien las tasas oficiales
         // Última actualización: Marzo 2026
+        // Mapeo de divisas a sus bancos centrales (no cambia)
+        // Las tasas y sesgo se derivan de las noticias y calendario económico en tiempo real
         const CENTRAL_BANK_REFERENCE = {
-            'USD': { bank: 'Federal Reserve (Fed)', rate: '4.25-4.50%', bias: 'Data-dependent, pausa en recortes' },
-            'EUR': { bank: 'Banco Central Europeo (BCE)', rate: '2.65%', bias: 'Dovish, ciclo de recortes activo' },
-            'GBP': { bank: 'Bank of England (BoE)', rate: '4.50%', bias: 'Cautelosamente dovish' },
-            'JPY': { bank: 'Bank of Japan (BoJ)', rate: '0.50%', bias: 'Hawkish, normalizando política monetaria' },
-            'AUD': { bank: 'Reserve Bank of Australia (RBA)', rate: '4.10%', bias: 'Inicio de ciclo dovish' },
-            'NZD': { bank: 'Reserve Bank of New Zealand (RBNZ)', rate: '3.75%', bias: 'Agresivamente dovish' },
-            'CAD': { bank: 'Bank of Canada (BoC)', rate: '3.00%', bias: 'Dovish, recortes continuos' },
-            'CHF': { bank: 'Swiss National Bank (SNB)', rate: '0.50%', bias: 'Neutral a dovish' }
+            'USD': { bank: 'Federal Reserve (Fed)' },
+            'EUR': { bank: 'Banco Central Europeo (BCE)' },
+            'GBP': { bank: 'Bank of England (BoE)' },
+            'JPY': { bank: 'Bank of Japan (BoJ)' },
+            'AUD': { bank: 'Reserve Bank of Australia (RBA)' },
+            'NZD': { bank: 'Reserve Bank of New Zealand (RBNZ)' },
+            'CAD': { bank: 'Bank of Canada (BoC)' },
+            'CHF': { bank: 'Swiss National Bank (SNB)' }
         };
 
         // --- API INTEGRATION ---
@@ -273,102 +275,8 @@
             return await response.json();
         }
 
-        // --- SAMPLE DATA (new schema) ---
-        const catalystsData = [
-            {
-                id: 1,
-                date: "Esta semana",
-                type: "Divergencia Monetaria",
-                icon: "🔥",
-                title: "Divergencia Fed vs BCE: Diferencial de tasas en máximos",
-                currencyAffected: "USD",
-                trendCode: "bearish",
-                magnitudeText: "Alta (Nivel 4/5)",
-                magnitudeVal: 85,
-                primaryPair: "EUR/USD",
-                primaryAction: "SHORT",
-                directionalBias: "BAJISTA",
-                probability: 72,
-                timeHorizon: "Hasta reunión BCE 17 de abril",
-                fundamentalAnalysis: {
-                    baseCurrencyBank: "Fed (USD): Tasa 4.25-4.50%. Sesgo data-dependent. La Fed mantiene pausa mientras evalúa el impacto de la inflación persistente. El mercado descuenta solo 1-2 recortes en 2026.",
-                    quoteCurrencyBank: "BCE (EUR): Tasa 2.65%. Sesgo dovish. El BCE continúa su ciclo de recortes ante debilidad en manufactura alemana y crecimiento anémico en la eurozona.",
-                    divergenceSummary: "Divergencia clara de ~175pb a favor del USD. La Fed mantiene tasas mientras el BCE recorta. El diferencial de tasas impulsa flujo de carry trade hacia USD, presionando EUR/USD a la baja. La eurozona muestra debilidad estructural mientras EE.UU. mantiene resiliencia relativa.",
-                    invalidators: ["CPI de EE.UU. cayendo por debajo de 2.5% — activaría expectativas de recortes Fed", "PMI eurozona sorprende al alza >52 — señalaría recuperación", "Fed señala recortes anticipados en comunicado FOMC"]
-                },
-                technicalSetup: {
-                    currentPrice: "1.0450",
-                    entry: "1.0480-1.0520 (retroceso a resistencia)",
-                    stopLoss: "1.0580 (por encima de resistencia semanal)",
-                    takeProfit: "1.0320 (soporte institucional)",
-                    riskRewardRatio: "1:2.3",
-                    timeframes: "D1 y H4"
-                },
-                pairsToAnalyze: [{ pair: "EUR/USD", bias: "Bajista — divergencia Fed/BCE" }, { pair: "USD/CHF", bias: "Alcista — flujo refugio + carry" }]
-            },
-            {
-                id: 2,
-                date: "Próximas 2-3 semanas",
-                type: "Intervención Cambiaria",
-                icon: "🏛️",
-                title: "BoJ normalizando vs BoE recortando: Presión en GBP/JPY",
-                currencyAffected: "JPY",
-                trendCode: "warning",
-                magnitudeText: "Alta (Nivel 4/5)",
-                magnitudeVal: 82,
-                primaryPair: "GBP/JPY",
-                primaryAction: "SHORT",
-                directionalBias: "BAJISTA",
-                probability: 68,
-                timeHorizon: "Hasta reunión BoJ 13 de marzo",
-                fundamentalAnalysis: {
-                    baseCurrencyBank: "BoE (GBP): Tasa 4.50%. Sesgo cautelosamente dovish. El BoE inició recortes y el mercado espera más. La inflación UK baja lentamente pero el crecimiento se estanca.",
-                    quoteCurrencyBank: "BoJ (JPY): Tasa 0.50%. Sesgo hawkish — único banco central G8 subiendo tasas. La normalización continúa con expectativas de subida a 0.75% en H1 2026.",
-                    divergenceSummary: "Convergencia de tasas: BoE bajando mientras BoJ sube. El diferencial GBP-JPY se comprime, eliminando el atractivo de carry de GBP/JPY. Además, riesgo de intervención verbal del MOF si JPY se debilita más allá de 155 vs USD.",
-                    invalidators: ["BoJ pausa subidas por debilidad económica japonesa", "Inflación UK repunta forzando al BoE a pausar recortes", "Risk-on extremo que favorezca carry trades"]
-                },
-                technicalSetup: {
-                    currentPrice: "191.50",
-                    entry: "192.00-193.00 (rally hacia resistencia)",
-                    stopLoss: "194.50 (por encima de alto reciente)",
-                    takeProfit: "187.00 (soporte estructural D1)",
-                    riskRewardRatio: "1:2.5",
-                    timeframes: "D1 y H4"
-                },
-                pairsToAnalyze: [{ pair: "GBP/JPY", bias: "Bajista — convergencia BoE/BoJ" }, { pair: "USD/JPY", bias: "Bajista moderado — BoJ hawkish" }]
-            },
-            {
-                id: 3,
-                date: "Esta semana",
-                type: "Colapso Commodities",
-                icon: "📉",
-                title: "Debilidad China presiona AUD mientras Fed mantiene",
-                currencyAffected: "AUD",
-                trendCode: "bearish",
-                magnitudeText: "Moderada (Nivel 3/5)",
-                magnitudeVal: 70,
-                primaryPair: "AUD/USD",
-                primaryAction: "SHORT",
-                directionalBias: "BAJISTA",
-                probability: 65,
-                timeHorizon: "Hasta datos PMI China fin de mes",
-                fundamentalAnalysis: {
-                    baseCurrencyBank: "RBA (AUD): Tasa 4.10%. Sesgo: inicio ciclo dovish. La RBA acaba de recortar por primera vez y el mercado espera más recortes ante debilidad en exportaciones a China.",
-                    quoteCurrencyBank: "Fed (USD): Tasa 4.25-4.50%. Sesgo data-dependent. La Fed mantiene tasas más altas, atrayendo flujo de carry vs AUD.",
-                    divergenceSummary: "Diferencial mínimo pero la dirección diverge: RBA bajando, Fed estable. Sumado a la correlación AUD con mineral de hierro y la debilidad del sector inmobiliario chino, el AUD enfrenta doble presión (macro + commodities).",
-                    invalidators: ["Estímulo fiscal masivo de China — rebote en commodities", "Dato de empleo AU sorprende al alza", "Fed señala recortes inminentes"]
-                },
-                technicalSetup: {
-                    currentPrice: "0.6280",
-                    entry: "0.6310-0.6340 (retroceso a media móvil D1)",
-                    stopLoss: "0.6390 (por encima de resistencia)",
-                    takeProfit: "0.6150 (soporte Q4)",
-                    riskRewardRatio: "1:2.0",
-                    timeframes: "D1 y H4"
-                },
-                pairsToAnalyze: [{ pair: "AUD/USD", bias: "Bajista — RBA dovish + China débil" }, { pair: "AUD/NZD", bias: "Neutral — ambos bancos recortando" }]
-            }
-        ];
+        // --- NO SAMPLE DATA — Todo viene del escaneo en vivo ---
+        const catalystsData = [];
 
         // --- STATE MANAGEMENT ---
         const appState = {
@@ -423,9 +331,9 @@
 
                 try {
                     // Include central bank context with the news
-                    const cbContext = '\n\n=== REFERENCIA BANCOS CENTRALES ===\n' +
+                    const cbContext = '\n\n=== BANCOS CENTRALES G8 ===\n' +
                         Object.entries(CENTRAL_BANK_REFERENCE).map(([cur, info]) =>
-                            `${cur}: ${info.bank} | Tasa: ${info.rate} | Sesgo: ${info.bias}`
+                            `${cur}: ${info.bank}`
                         ).join('\n');
 
                     const result = await callGeminiAPI(`Analiza esta noticia con enfoque de divergencia entre bancos centrales:\n\n${input}${cbContext}`);
@@ -527,11 +435,12 @@
                             Object.entries(pairs).map(([pair, price]) => `${pair}: ${price}`).join('\n');
                     }
 
-                    // Format central bank reference
-                    let cbText = '\n\n=== REFERENCIA DE BANCOS CENTRALES (tasas actuales y sesgo de política monetaria) ===\n' +
+                    // Format central bank reference (names only — rates/bias derived from news & calendar)
+                    let cbText = '\n\n=== BANCOS CENTRALES G8 (deriva tasas y sesgo de las noticias y calendario proporcionados) ===\n' +
                         Object.entries(CENTRAL_BANK_REFERENCE).map(([cur, info]) =>
-                            `${cur}: ${info.bank} | Tasa actual: ${info.rate} | Sesgo: ${info.bias}`
-                        ).join('\n');
+                            `${cur}: ${info.bank}`
+                        ).join('\n') +
+                        '\nIMPORTANTE: Usa las noticias y el calendario económico para determinar la tasa actual y sesgo de cada banco central. NO inventes tasas.';
 
                     const fullContext = newsText + calendarText + ratesText + cbText;
                     const newCatalysts = await callGeminiMarketScanner(fullContext);
@@ -661,7 +570,10 @@
                 }
 
                 if(filteredData.length === 0) {
-                    container.innerHTML = `<div class="p-6 text-center text-stone-500 bg-stone-50 rounded-lg border border-stone-200">No hay señales activas para este filtro.</div>`;
+                    const msg = appState.catalysts.length === 0
+                        ? '📡 Haz click en <strong>Escanear Mercado</strong> para obtener análisis de divergencia en vivo con datos reales.'
+                        : 'No hay señales activas para este filtro.';
+                    container.innerHTML = `<div class="p-8 text-center text-stone-500 bg-stone-50 rounded-lg border border-stone-200 border-dashed">${msg}</div>`;
                     return;
                 }
 
