@@ -173,7 +173,50 @@ export default async function handler(req, res) {
       result = [];
     }
 
-    return res.status(200).json(Array.isArray(result) ? result : []);
+    // Normalize field names — the model sometimes uses Spanish or alternative names
+    const normalized = (Array.isArray(result) ? result : []).map(cat => {
+      const c = {};
+      // Map every possible field name variation to the expected English field name
+      c.date = cat.date || cat.fecha || "En Desarrollo";
+      c.title = cat.title || cat.titulo || cat.título || "Catalizador detectado";
+      c.type = cat.type || cat.tipo || cat.category || cat.categoría || "Divergencia Monetaria";
+      c.icon = cat.icon || cat.icono || cat.emoji || "⚡";
+      c.currencyAffected = cat.currencyAffected || cat.currency_affected || cat.divisa || cat.moneda || cat.currency || "N/A";
+      c.primaryPair = cat.primaryPair || cat.primary_pair || cat.par || cat.pair || cat.parPrincipal || "N/A";
+      c.primaryAction = cat.primaryAction || cat.primary_action || cat.accion || cat.acción || cat.action || "SHORT";
+      c.directionalBias = cat.directionalBias || cat.directional_bias || cat.sesgo || cat.bias || cat.direccion || cat.dirección || (c.primaryAction === 'BUY' ? 'ALCISTA' : 'BAJISTA');
+      c.probability = cat.probability || cat.probabilidad || cat.prob || 60;
+      c.timeHorizon = cat.timeHorizon || cat.time_horizon || cat.horizonte || cat.horizonteTemporal || cat.horizonte_temporal || c.date;
+      c.trendCode = cat.trendCode || cat.trend_code || cat.tendencia || (c.primaryAction === 'BUY' ? 'bullish' : 'bearish');
+      c.magnitudeText = cat.magnitudeText || cat.magnitude_text || cat.magnitud || cat.impacto || "Media (Nivel 3/5)";
+      c.magnitudeVal = cat.magnitudeVal || cat.magnitude_val || cat.magnitudVal || 60;
+
+      // Nested objects
+      const fa = cat.fundamentalAnalysis || cat.fundamental_analysis || cat.analisisFundamental || cat.análisisFundamental || cat.fundamental || {};
+      c.fundamentalAnalysis = {
+        baseCurrencyBank: fa.baseCurrencyBank || fa.base_currency_bank || fa.bancoMonedaBase || fa.bancoBase || fa.base || "N/A",
+        quoteCurrencyBank: fa.quoteCurrencyBank || fa.quote_currency_bank || fa.bancoMonedaCotizada || fa.bancoCotizada || fa.quote || "N/A",
+        divergenceSummary: fa.divergenceSummary || fa.divergence_summary || fa.resumenDivergencia || fa.divergencia || fa.summary || "N/A",
+        invalidators: fa.invalidators || fa.invalidadores || fa.riesgos || []
+      };
+
+      const ts = cat.technicalSetup || cat.technical_setup || cat.setupTecnico || cat.análisisTécnico || cat.tecnico || cat.technical || {};
+      c.technicalSetup = {
+        currentPrice: ts.currentPrice || ts.current_price || ts.precioActual || ts.precio || "N/A",
+        entry: ts.entry || ts.entrada || "N/A",
+        stopLoss: ts.stopLoss || ts.stop_loss || ts.sl || "N/A",
+        takeProfit: ts.takeProfit || ts.take_profit || ts.tp || "N/A",
+        riskRewardRatio: ts.riskRewardRatio || ts.risk_reward_ratio || ts.riesgoRecompensa || ts.rr || "N/A",
+        timeframes: ts.timeframes || ts.temporalidades || "D1 y H4"
+      };
+
+      c.pairsToAnalyze = cat.pairsToAnalyze || cat.pairs_to_analyze || cat.paresAnalizar || cat.pares ||
+        [{ pair: c.primaryPair, bias: c.directionalBias }];
+
+      return c;
+    });
+
+    return res.status(200).json(normalized);
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
