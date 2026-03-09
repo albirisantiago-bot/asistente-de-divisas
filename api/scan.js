@@ -139,10 +139,39 @@ export default async function handler(req, res) {
     }
 
     const data = await response.json();
-    const raw = JSON.parse(data.choices[0].message.content);
+    const content = data.choices[0].message.content;
+    let raw;
+    try {
+      raw = JSON.parse(content);
+    } catch (parseErr) {
+      console.error("Failed to parse Groq response:", content.substring(0, 500));
+      return res.status(500).json({ error: "Invalid JSON from AI model", rawPreview: content.substring(0, 300) });
+    }
 
-    // Groq con json_object a veces envuelve el array en una key, normalizamos
-    const result = Array.isArray(raw) ? raw : (raw.catalysts || raw.alerts || raw.events || raw.data || raw.results || Object.values(raw)[0]);
+    // Groq con json_object envuelve el array en una key — extraemos el array sin importar el nombre de la key
+    let result;
+    if (Array.isArray(raw)) {
+      result = raw;
+    } else if (typeof raw === 'object' && raw !== null) {
+      // Find the first value that is an array of objects (the catalysts)
+      const arrays = Object.values(raw).filter(v => Array.isArray(v));
+      if (arrays.length > 0) {
+        // Pick the longest array that contains objects (not strings)
+        result = arrays
+          .filter(arr => arr.length > 0 && typeof arr[0] === 'object')
+          .sort((a, b) => b.length - a.length)[0] || arrays[0];
+      } else {
+        // Maybe the model returned a single catalyst as an object
+        if (raw.primaryPair || raw.title || raw.type) {
+          result = [raw];
+        } else {
+          console.error("Unexpected Groq response structure:", JSON.stringify(raw).substring(0, 500));
+          result = [];
+        }
+      }
+    } else {
+      result = [];
+    }
 
     return res.status(200).json(Array.isArray(result) ? result : []);
   } catch (error) {
