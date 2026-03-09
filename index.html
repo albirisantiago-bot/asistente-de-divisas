@@ -273,9 +273,15 @@
             });
             if (!response.ok) {
                 const errData = await response.json().catch(() => ({ error: response.statusText }));
-                throw new Error(`Scan API error ${response.status}: ${errData.error || response.statusText}`);
+                const errMsg = errData.error || response.statusText;
+                if (response.status === 429) {
+                    throw new Error(`Rate limit de Groq excedido. Esperá 1-2 minutos e intentá de nuevo.`);
+                }
+                throw new Error(`Scan API error ${response.status}: ${errMsg}`);
             }
-            return await response.json();
+            const result = await response.json();
+            console.log('Scan API response:', JSON.stringify(result).substring(0, 500));
+            return result;
         }
 
         // --- NO SAMPLE DATA — Todo viene del escaneo en vivo ---
@@ -446,7 +452,14 @@
                         '\nIMPORTANTE: Usa las noticias y el calendario económico para determinar la tasa actual y sesgo de cada banco central. NO inventes tasas.';
 
                     const fullContext = newsText + calendarText + ratesText + cbText;
-                    const newCatalysts = await callGeminiMarketScanner(fullContext);
+                    console.log('Context length:', fullContext.length, 'News items:', allItems.length);
+
+                    // Try up to 2 times if the model returns empty
+                    let newCatalysts = await callGeminiMarketScanner(fullContext);
+                    if (!newCatalysts || !Array.isArray(newCatalysts) || newCatalysts.length === 0) {
+                        console.warn('First scan returned empty, retrying...');
+                        newCatalysts = await callGeminiMarketScanner(fullContext);
+                    }
 
                     if (newCatalysts && newCatalysts.length > 0) {
                         newCatalysts.forEach((cat, index) => {
@@ -482,7 +495,8 @@
                         mainContent.style.opacity = '0.3';
                         setTimeout(() => mainContent.style.opacity = '1', 300);
                     } else {
-                        alert("📡 Escaneo completo. No se detectaron catalizadores en este momento.");
+                        console.error('No catalysts returned. Raw response was logged above.');
+                        alert("⚠️ El escaneo no devolvió catalizadores. Esto puede ocurrir si:\n\n1. El modelo de IA (Groq) está sobrecargado\n2. El rate limit fue excedido\n3. Hubo un error al procesar la respuesta\n\nRevisá la consola (F12) para más detalles.\nIntentá de nuevo en 1-2 minutos.");
                     }
 
                 } catch(e) {
